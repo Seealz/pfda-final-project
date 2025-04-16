@@ -27,3 +27,7 @@ def main():
     screen = pygame.display.set_mode((SCREEN_HEIGHT, SCREEN_HEIGHT))
     pygame.display.set_caption("Monsoon Rumble")
     clock - pygame.time.Clock()
+
+
+    if__name__ == "__main__":
+    main()
