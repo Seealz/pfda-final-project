@@ -1,7 +1,6 @@
 import pygame
 import random
 import os
-from constants import *
 
 class Monsoons:
     def __init__(self, name, element, stats, moves):
