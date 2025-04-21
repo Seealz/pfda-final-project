@@ -30,18 +30,15 @@ class Move:
         self.power = power
         self.pp = pp
        
-        if sound:
-            sound_path = sound
-            if os.path.exists(sound_path):
-                self.sound = pygame.mixer.Sound(sound_path)
-            else:
-                print(f"Warning: Sound file '{sound_path}' not found!")
-                self.sound = None
-        else:
-            self.sound = None
+        sound_path = os.path.abspath(sound)
+if os.path.exists(sound_path):
+    self.sound = pygame.mixer.Sound(sound_path)
+else:
+    print(f"Error: Sound file '{sound_path}' does not exist!")
+    self.sound = None
 
-        self.effect_image = effect_image
-        self.is_physical = is_physical
+    self.effect_image = effect_image
+    self.is_physical = is_physical
 
     def play_sound(self):
         if self.sound:
@@ -219,7 +216,7 @@ def show_select_screen(screen, all_monsoons):
                     
 def main():
     pygame.init()
-    
+    pygame.mixer.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Monsoon Rumble")
     clock = pygame.time.Clock()
@@ -233,7 +230,6 @@ def main():
     ]
 
     player = show_select_screen(screen, all_monsoons)
-
     opponent = random.choice([m for m in all_monsoons if m != player])
 
     running = True
@@ -241,11 +237,53 @@ def main():
         screen.fill(BG_COLOR)
         screen.blit(player.back_sprite, (100, 300))
         screen.blit(opponent.front_sprite, (500, 100))
+
+        # Show HP and information
+        font = pygame.font.Font(None, 36)
+        player_hp_text = font.render(f"{player.name} HP: {player.stats['hp']}", True, (255, 255, 255))
+        opponent_hp_text = font.render(f"{opponent.name} HP: {opponent.stats['hp']}", True, (255, 255, 255))
+        screen.blit(player_hp_text, (100, 450))
+        screen.blit(opponent_hp_text, (500, 50))
+
         pygame.display.flip()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        # Wait for player to choose a move
+        move_choice = None
+        while move_choice is None:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    break
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_1:
+                        move_choice = 0  # Player chooses move 1
+                    elif event.key == pygame.K_2:
+                        move_choice = 1  # Player chooses move 2
 
-if __name__ == "__main__":
-    main()
+            # Display available moves
+            screen.fill(BG_COLOR)
+            screen.blit(player.back_sprite, (100, 300))
+            screen.blit(opponent.front_sprite, (500, 100))
+            move_text = font.render(f"1: {player.moves[0].name}  2: {player.moves[1].name}", True, (255, 255, 255))
+            screen.blit(move_text, (100, 500))
+            pygame.display.flip()
+
+        # Execute attack
+        success, message = player.attack(move_choice, opponent, screen)
+        print(message)
+
+        if opponent.stats["hp"] <= 0:
+            print(f"{opponent.name} fainted!")
+            break
+
+        # Opponent's turn (randomly choose a move)
+        if opponent.stats["hp"] > 0:
+            opponent_move_choice = random.choice([0, 1])  # Randomly choose an attack
+            success, message = opponent.attack(opponent_move_choice, player, screen)
+            print(message)
+
+            if player.stats["hp"] <= 0:
+                print(f"{player.name} fainted!")
+                break
+
+        clock.tick(FPS)
