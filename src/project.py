@@ -53,58 +53,55 @@ class Monsoons:
         self.load_sprites()
 
 # This is where the main Monsoon Front and Back sprites are loaded
-    def load_sprites(self):
-        try:
-            self.front_sprite = pygame.image.load(f"assets/sprites/{self.name.lower()}_front.png").convert_alpha()
-            self.back_sprite = pygame.image.load(f"assets/sprites/{self.name.lower()}_back.png").convert_alpha()
-        except:
-            self._create_placeholder_sprites()
+def load_sprites(self):
+    try:
+        self.front_sprite = pygame.image.load(f"assets/sprites/{self.name.lower()}_front.png").convert_alpha()
+        self.back_sprite = pygame.image.load(f"assets/sprites/{self.name.lower()}_back.png").convert_alpha()
+    except:
+        self._create_placeholder_sprites()
 
 # This is placeholder sprites
-    def _create_placeholder_sprites(self):
-        placeholder_sprite = pygame.Surface((100, 100), pygame.SRCALPHA)
-        pygame.draw.rect(placeholder_sprite, (255, 0, 255), (0, 0, 100, 100))
-        self.front_sprite = self.back_sprite = placeholder_sprite
+def _create_placeholder_sprites(self):
+    placeholder_sprite = pygame.Surface((100, 100), pygame.SRCALPHA)
+    pygame.draw.rect(placeholder_sprite, (255, 0, 255), (0, 0, 100, 100))
+    self.front_sprite = self.back_sprite = placeholder_sprite
 
 
 # This is how a move is used, it checks for pp, plays the attack animation and sound, and checks for type effectiveness
-    def attack(self, move_index, opponent, screen):
-        move = self.moves[move_index]
-        if move.pp <= 0:
-            return False, f"{move.name} has no PP left!"
-        move.pp -= 1
-        self.animate_attack(screen, opponent, move)
-        move.play_sound()
-        damage = self._calculate_damage(move, opponent)
-        opponent.take_damage(damage)
-        return True, f"{self.name} used {move.name}!"
+def attack(self, move_index, opponent, screen):
+    move = self.moves[move_index]
+    if move.pp <= 0:
+        return False, f"{move.name} has no PP left!"
+    move.pp -= 1
+    self.animate_attack(screen, opponent, move)
+    move.play_sound()
+    damage = self._calculate_damage(move, opponent)
+    opponent.take_damage(damage)
+    return True, f"{self.name} used {move.name}!"
     
-    def _calculate_damage(self, move, opponent):
-        stab = 1.5 if move.type in self.types else 1.0
-        effectiveness = TYPE_EFFECTIVENESS[move.type][opponent.types[0]]
-        base = (move.power * self.stats["attack"] / opponent.stats["defense"])
-        return int(base * stab * effectiveness * random.uniform(0.85, 1.0))
+def _calculate_damage(self, move, opponent):
+    stab = 1.5 if move.type in self.types else 1.0
+    effectiveness = TYPE_EFFECTIVENESS[move.type][opponent.types[0]]
+    base = (move.power * self.stats["attack"] / opponent.stats["defense"])
+    return int(base * stab * effectiveness * random.uniform(0.85, 1.0))
 
     
-    def take_damage(self, amount):
-        self.stats["hp"] = max(0, self.stats["hp"] - amount)
-        return self.stats["hp"] <= 0
+def take_damage(self, amount):
+    self.stats["hp"] = max(0, self.stats["hp"] - amount)
+    return self.stats["hp"] <= 0
     
-    # This is the way a move is animated
-    def animate_attack(self, screen, opponent):
+    # This is postions for Player and Opp
+def animate_attack(self, screen, opponent):
 
-        start_x, start_y = 100, 300
-        end_x, end_y = 500, 100
-        duration = 500
-        steps = 30
-        dx = (end_x - start_x) / steps
-        dy = (end_y - start_y) / steps
+    start_x = 100  # Player's X position
+    start_y = 300  # Player's Y position 
+    end_x = 500    # Opponent's X position 
+    end_y = 100    # Opponent's Y position
 
-
-    if move.effect_image:
-            effect_image = pygame.image.load(move.effect_image)
-            effect_pos_x, effect_pos_y = player_start_x, player_start_y
-            effect_moving = True
+    duration = 1000  # Total animation time (in milliseconds)
+    steps = duration // 100  # frame rate control
+    dx = (end_x - start_x) / steps  # X movement per step
+    dy = (end_y - start_y) / steps  # Y movement per step
 
 
 def main():
