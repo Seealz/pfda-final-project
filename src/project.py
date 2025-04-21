@@ -8,6 +8,16 @@ SCREEN_HEIGHT = 600
 FPS = 60
 BG_COLOR = (0, 0, 0)
 
+#Typings
+TYPE_EFFECTIVENESS = {
+    "Fire":     {"Plant": 2.0, "Normal": 2.0, "Electric": 1.0, "Psychic": 1.0, "Earth": 0.5, "Wind": 0.5},
+    "Water":    {"Fire": 2.0, "Earth": 2.0, "Plant": 0.5, "Electric": 0.5},
+    "Plant":    {"Water": 2.0, "Earth": 2.0, "Fire": 0.5, "Wind": 0.5},
+    
+
+
+}
+
 class Monsoons:
     def __init__(self, name, element, stats, moves):
         self.name = name
