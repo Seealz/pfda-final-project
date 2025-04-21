@@ -169,6 +169,26 @@ def show_start_screen(screen):
     title_text = font.render("Monsoon Rumble", True, (255, 255, 255))
     prompt_text = pygame.font.Font(None, 36).render("Press SPACE to Start", True, (200, 200, 200))
 
+    while True:
+        screen.fill((0, 0, 0))
+        screen.blit(title_text, (SCREEN_WIDTH // 2 - title_text.get_width() // 2, 200))
+        screen.blit(prompt_text, (SCREEN_WIDTH // 2 - prompt_text.get_width() // 2, 300))
+
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                return  # Continue to select screen
+
+def show_select_screen(screen, all_monsoons):
+    font = pygame.font.Font(None, 36)
+    selected_index = 0
+
+    while True:
+        screen.fill((30, 30, 30))
+        
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
