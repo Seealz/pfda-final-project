@@ -78,12 +78,18 @@ class Monsoons:
     
     # This is the way a move is animated
     def animate_attack(self, screen, opponent):
-        
         # Positions for the player and opponent
-        player_start_x = 100
+        player_start_x = 100 #Players sprite position
         player_start_y = 300
-        player_end_x = 500  
-        player_end_y = 100 
+        player_end_x = 500  #Opps sprite position
+        player_end_y = 100  
+
+    # This is the animation time, it's in milliseconds
+        duration = 1000
+        start_time = pygame.time.get_ticks()
+
+    # This loads fx based on move type
+
 
 def main():
     pygame.init()
