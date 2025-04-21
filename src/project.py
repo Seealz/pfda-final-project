@@ -31,9 +31,9 @@ MOVES = {
 }
 
 class Monsoons:
-    def __init__(self, name, element, stats, moves):
+    def __init__(self, name, types, stats, moves):
         self.name = name
-        self.element = element
+        self.types = types
         self.stats = stats
         self.moves = [Move(move) for move in moves]
         self.load_sprites()
