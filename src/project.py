@@ -72,6 +72,10 @@ class Monsoons:
         
         return damage
     
+    def take_damage(self, amount):
+        self.stats["hp"] = max(0, self.stats["hp"] - amount)
+        return self.stats["hp"] <= 0
+    
 
 def main():
     pygame.init()
