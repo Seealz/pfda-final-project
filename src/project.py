@@ -176,7 +176,7 @@ def show_start_screen(screen):
                 pygame.quit()
                 exit()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                return  # Continue to select screen
+                return
 
 def show_select_screen(screen, all_monsoons):
     font = pygame.font.Font(None, 36)
@@ -206,7 +206,7 @@ def show_select_screen(screen, all_monsoons):
                     selected_index = (selected_index + 1) % len(all_monsoons)
                 elif event.key == pygame.K_RETURN:
                     return all_monsoons[selected_index]
-        
+                    
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -218,7 +218,7 @@ def main():
     all_monsoons = [
         Monsoons("Thyladon", ["Normal"], {"hp": 150, "attack": 67, "defense": 40}, ["Ember", "Tackle"]),
         Monsoons("Baitfish", ["Water"], {"hp": 160, "attack": 54, "defense": 60}, ["Water Gun", "Tackle"]),
-        Monsoons("Flydrake", ["Wind"], {"hp": 130, "attack": 60, "defense": 40}, ["Thunder Shock", "Tackle"]),
+        Monsoons("Flydrake", ["Wind"], {"hp": 130, "attack": 60, "defense": 40}, ["Gust", "Tackle"]),
     ]
 
     player = show_select_screen(screen, all_monsoons)
@@ -232,9 +232,9 @@ def main():
         screen.blit(opponent.front_sprite, (500, 100))
         pygame.display.flip()
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()
