@@ -40,7 +40,11 @@ class Monsoons:
 
 # This is where the main Monsoon Front and Back sprites are loaded
     def load_sprites(self):
-        
+        try:
+            self.front_sprite = pygame.image.load(f"assets/sprites/{self.name.lower()}_front.png").convert_alpha()
+            self.back_sprite = pygame.image.load(f"assets/sprites/{self.name.lower()}_back.png").convert_alpha()
+        except:
+            self._create_placeholder_sprites()
 
 
 
