@@ -89,29 +89,31 @@ def _calculate_damage(self, move, opponent):
 def take_damage(self, amount):
     self.stats["hp"] = max(0, self.stats["hp"] - amount)
     return self.stats["hp"] <= 0
+
+def animate_attack(self, screen, opponent, move):
+    # Initial positions for the player and opponent
+    player_start_x = 100    # Player's X starting position
+    player_start_y = 300    # Player's Y starting position 
+    opponent_start_x = 500  # Opponent's starting X position
+    opponent_start_y = 100  # Opponent's starting Y position
     
-    # This is postions for Player and Opp
-def animate_attack(self, screen, opponent):
+    # End positions, Where the player and opponent will meet
+    player_end_x = opponent_start_x
+    player_end_y = opponent_start_y
+    opponent_end_x = player_start_x
+    opponent_end_y = player_start_y
 
-    start_x = 100  # Player's X position
-    start_y = 300  # Player's Y position 
-    end_x = 500    # Opponent's X position 
-    end_y = 100    # Opponent's Y position
-
-    duration = 1000  # Total animation time (in milliseconds)
-    steps = duration // 100  # frame rate control
-    dx = (end_x - start_x) / steps  # X movement per step
-    dy = (end_y - start_y) / steps  # Y movement per step
-
-# This load the special effect
-    effect_image = None
-    if move.effect_image:
-        effect_image = pygame.image.load(move.effect_image)
-        effect_pos_x, effect_pos_y = start_x, start_y  # Starting position for special effect
-
-    start_time = pygame.time.get_ticks()
-
+    # Time of animation in milliseconds
+    duration = 1000
+    steps = duration // 100  # Number of steps in the animation (frame rate control)
+    dx = (player_end_x - player_start_x) / steps  # X movement per step
+    dy = (player_end_y - player_start_y) / steps  # Y movement per step
     
+    # For the opponent's movement (they move towards the player too)
+    opponent_dx = (opponent_end_x - opponent_start_x) / steps
+    opponent_dy = (opponent_end_y - opponent_start_y) / steps
+    for step in range(steps):
+        
 
 def main():
     pygame.init()
