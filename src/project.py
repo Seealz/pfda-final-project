@@ -55,7 +55,7 @@ MOVES = {
     "Tackle": Move("Tackle", "Normal", 40, 35, "assets/sounds/tackle.wav", is_physical=True),
     "Ember": Move("Ember", "Fire", 50, 25, "assets/sounds/ember.wav", "assets/effects/ember.png", is_physical=False),
     "Water Gun": Move("Water Gun", "Water", 40, 25, "assets/sounds/water_gun.wav", "assets/effects/watergun.png", is_physical=False),
-    "Gust": Move("Gust", "Wind", 40, 25, "", "assets/effects/gust.png", is_physical=False)
+    "Gust": Move("Gust", "Wind", 40, 25, "assets/sounds/gust.wav", "assets/effects/gust.png", is_physical=False)
 }
 
 class Monsoons:
@@ -222,7 +222,12 @@ def show_select_screen(screen, all_monsoons):
                     
 def main():
     pygame.init()
-    pygame.mixer.init()
+
+    try:
+        pygame.mixer.init()
+        print("pygame.mixer initialized successfully!")
+    except pygame.error as e:
+        print(f"Error initializing pygame.mixer: {e}")
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Monsoon Rumble")
     clock = pygame.time.Clock()
