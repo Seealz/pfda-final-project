@@ -29,7 +29,17 @@ class Move:
         self.type = move_type
         self.power = power
         self.pp = pp
-        self.sound = pygame.mixer.Sound(sound) if sound and os.path.exists(sound) else None
+       
+        if sound:
+            sound_path = sound
+            if os.path.exists(sound_path):
+                self.sound = pygame.mixer.Sound(sound_path)
+            else:
+                print(f"Warning: Sound file '{sound_path}' not found!")
+                self.sound = None
+        else:
+            self.sound = None
+
         self.effect_image = effect_image
         self.is_physical = is_physical
 
@@ -209,6 +219,7 @@ def show_select_screen(screen, all_monsoons):
                     
 def main():
     pygame.init()
+    
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Monsoon Rumble")
     clock = pygame.time.Clock()
