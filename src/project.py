@@ -53,11 +53,16 @@ class Monsoons:
         self.front_sprite = self.back_sprite = placeholder_sprite
 
 # This is how a move is used, it checks for pp, plays the attack animation and sound, and checks for type effectiveness
-     def attack(self, move_index, opponent, screen):
+    def attack(self, move_index, opponent, screen):
         move = self.moves[move_index]
         if move.pp <= 0:
             return False, f"{move.name} has no PP left!"
         move.pp -= 1
+        self.animate_attack(screen, opponent)
+        move.play_sound()
+        damage = self._calculate_damage(move, opponent)
+        opponent.take_damage(damage)
+        return True, f"{self.name} used {move.name}!"
 
 def main():
     pygame.init()
