@@ -287,3 +287,6 @@ def main():
                 break
 
         clock.tick(FPS)
+
+        if __name__ == "__main__":
+            main()
