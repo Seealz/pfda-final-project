@@ -131,7 +131,19 @@ def animate_attack(self, screen, opponent, move):
         current_opponent_y = opponent_start_y + opponent_dy * step
         screen.blit(opponent.front_sprite, (current_opponent_x, current_opponent_y))  # This draws opponent's sprite
 
-        
+        # This animates special effects
+        if move.effect_image:
+            screen.blit(effect_image, (effect_pos_x, effect_pos_y))  # This draws the effect
+            effect_pos_x += dx  # This moves the effect towards the opponent
+            effect_pos_y += dy
+
+        pygame.display.flip()  # This updates the display
+        pygame.time.delay(100) # This controls the animation speed
+
+    # This moves both player and opponent back to their original positions
+    for step in range(steps):
+        screen.fill(BG_COLOR)  # This clears the screen each frame
+
 
 def main():
     pygame.init()
