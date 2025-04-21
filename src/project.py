@@ -26,12 +26,12 @@ TYPE_EFFECTIVENESS["Earth"].update({"Fire": 2.0, "Electric": 2.0, "Water": 0.5, 
 class Move:
     def __init__(self, name, move_type, power, pp, sound=None, effect_image=None, is_physical=False):
         self.name = name
-        self.move_type = move_type  # e.g., 'Fire', 'Water', 'Normal'
+        self.type = move_type
         self.power = power
         self.pp = pp
-        self.sound = pygame.mixer.Sound(sound) if sound else None
-        self.effect_image = effect_image  # Special effect image
-        self.is_physical = is_physical   # physical movement
+        self.sound = pygame.mixer.Sound(sound) if sound and os.path.exists(sound) else None
+        self.effect_image = effect_image
+        self.is_physical = is_physical
 
     def play_sound(self):
         if self.sound:
@@ -39,32 +39,9 @@ class Move:
 
 # Moves List, is_physical=True = Sprite move towards opponent, if False then fx plays
 MOVES = {
-     "Tackle": Move(
-        name="Tackle",
-        move_type="Normal",
-        power=40,
-        pp=35,
-        sound="assets/sounds/tackle.wav",
-        is_physical=True
-     ),
-     "Ember": Move(
-        name="Ember",
-        move_type="Fire",
-        power=50,
-        pp=25,
-        sound="assets/sounds/ember.wav",
-        effect_image="assets/effects/ember.png",
-        is_physical=False
-     ),
-    "Water Gun": Move(
-        name="Water Gun",
-        move_type="Water",
-        power=40,
-        pp=25,
-        sound="assets/sounds/water_gun.wav",
-        effect_image="assets/effects/watergun.png",
-        is_physical=False
-    )
+    "Tackle": Move("Tackle", "Normal", 40, 35, "assets/sounds/tackle.wav", is_physical=True),
+    "Ember": Move("Ember", "Fire", 50, 25, "assets/sounds/ember.wav", "assets/effects/ember.png", is_physical=False),
+    "Water Gun": Move("Water Gun", "Water", 40, 25, "assets/sounds/water_gun.wav", "assets/effects/watergun.png", is_physical=False)
 }
 
 class Monsoons:
@@ -72,7 +49,7 @@ class Monsoons:
         self.name = name
         self.types = types
         self.stats = stats
-        self.moves = [Move(move) for move in moves]
+        self.moves = [MOVES[name] for name in move_names]
         self.load_sprites()
 
 # This is where the main Monsoon Front and Back sprites are loaded
@@ -89,23 +66,25 @@ class Monsoons:
         pygame.draw.rect(placeholder_sprite, (255, 0, 255), (0, 0, 100, 100))
         self.front_sprite = self.back_sprite = placeholder_sprite
 
+
 # This is how a move is used, it checks for pp, plays the attack animation and sound, and checks for type effectiveness
     def attack(self, move_index, opponent, screen):
         move = self.moves[move_index]
         if move.pp <= 0:
             return False, f"{move.name} has no PP left!"
         move.pp -= 1
-        self.animate_attack(screen, opponent)
+        self.animate_attack(screen, opponent, move)
         move.play_sound()
         damage = self._calculate_damage(move, opponent)
         opponent.take_damage(damage)
         return True, f"{self.name} used {move.name}!"
     
     def _calculate_damage(self, move, opponent):
-        stab_bonus = 1.5 if move.type in self.types else 1.0
-        effectiveness = TYPE_EFFECTIVENESS.get(move.type, {}).get(opponent.types[0], 1.0)
-        base_damage = (move.power * self.stats["attack"] / opponent.stats["defense"]) * effectiveness
-        return int(base_damage * random.uniform(0.85, 1.0))
+        stab = 1.5 if move.type in self.types else 1.0
+        effectiveness = TYPE_EFFECTIVENESS[move.type][opponent.types[0]]
+        base = (move.power * self.stats["attack"] / opponent.stats["defense"])
+        return int(base * stab * effectiveness * random.uniform(0.85, 1.0))
+
     
     def take_damage(self, amount):
         self.stats["hp"] = max(0, self.stats["hp"] - amount)
@@ -113,17 +92,19 @@ class Monsoons:
     
     # This is the way a move is animated
     def animate_attack(self, screen, opponent):
-        # Positions for the player and opponent
-        player_start_x = 100 #Players sprite position
-        player_start_y = 300
-        player_end_x = 500  #Opps sprite position
-        player_end_y = 100  
 
-    # This is the animation time, it's in milliseconds
-        duration = 1000
-        start_time = pygame.time.get_ticks()
+        start_x, start_y = 100, 300
+        end_x, end_y = 500, 100
+        duration = 500
+        steps = 30
+        dx = (end_x - start_x) / steps
+        dy = (end_y - start_y) / steps
 
-    # This loads fx based on move type
+
+    if move.effect_image:
+            effect_image = pygame.image.load(move.effect_image)
+            effect_pos_x, effect_pos_y = player_start_x, player_start_y
+            effect_moving = True
 
 
 def main():
