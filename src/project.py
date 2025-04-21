@@ -53,7 +53,7 @@ MOVES = {
         power=50,
         pp=25,
         sound="assets/sounds/ember.wav",
-        effect_image="assets/effects/fireball.png",
+        effect_image="assets/effects/ember.png",
         is_physical=False
      ),
     "Water Gun": Move(
@@ -64,7 +64,7 @@ MOVES = {
         sound="assets/sounds/water_gun.wav",
         effect_image="assets/effects/watergun.png",
         is_physical=False
-    ),
+    )
 }
 
 class Monsoons:
@@ -105,9 +105,7 @@ class Monsoons:
         stab_bonus = 1.5 if move.type in self.types else 1.0
         effectiveness = TYPE_EFFECTIVENESS.get(move.type, {}).get(opponent.types[0], 1.0)
         base_damage = (move.power * self.stats["attack"] / opponent.stats["defense"]) * effectiveness
-        damage = int(base_damage * stab_bonus)
-        
-        return damage
+        return int(base_damage * random.uniform(0.85, 1.0))
     
     def take_damage(self, amount):
         self.stats["hp"] = max(0, self.stats["hp"] - amount)
