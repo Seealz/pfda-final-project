@@ -37,9 +37,34 @@ class Move:
         if self.sound:
             self.sound.play()
 
-# Moves List
+# Moves List, is_physical=True = Sprite move towards opponent, if False then fx plays
 MOVES = {
-  
+     "Tackle": Move(
+        name="Tackle",
+        move_type="Normal",
+        power=40,
+        pp=35,
+        sound="assets/sounds/tackle.wav",
+        is_physical=True
+     ),
+     "Ember": Move(
+        name="Ember",
+        move_type="Fire",
+        power=50,
+        pp=25,
+        sound="assets/sounds/ember.wav",
+        effect_image="assets/effects/fireball.png",
+        is_physical=False
+     ),
+    "Water Gun": Move(
+        name="Water Gun",
+        move_type="Water",
+        power=40,
+        pp=25,
+        sound="assets/sounds/water_gun.wav",
+        effect_image="assets/effects/watergun.png",
+        is_physical=False
+    ),
 }
 
 class Monsoons:
