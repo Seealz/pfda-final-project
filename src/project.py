@@ -41,7 +41,8 @@ class Move:
 MOVES = {
     "Tackle": Move("Tackle", "Normal", 40, 35, "assets/sounds/tackle.wav", is_physical=True),
     "Ember": Move("Ember", "Fire", 50, 25, "assets/sounds/ember.wav", "assets/effects/ember.png", is_physical=False),
-    "Water Gun": Move("Water Gun", "Water", 40, 25, "assets/sounds/water_gun.wav", "assets/effects/watergun.png", is_physical=False)
+    "Water Gun": Move("Water Gun", "Water", 40, 25, "assets/sounds/water_gun.wav", "assets/effects/watergun.png", is_physical=False),
+    "Gust": Move("Gust", "Wind", 40, 25, "assets/sounds/gust.wav", "assets/effects/gust.png", is_physical=False)
 }
 
 class Monsoons:
@@ -169,6 +170,11 @@ def main():
     pygame.display.set_caption("Monsoon Rumble")
     clock = pygame.time.Clock()
 
+  all_monsoons = [
+        Monsoons("Thyladon", ["Normal","Plant"], {"hp": 150, "attack": 67, "defense": 40}, ["Ember", "Tackle"]),
+        Monsoons("Baitfish", ["Water"], {"hp": 160, "attack": 54, "defense": 60}, ["Water Gun", "Tackle"]),
+        Monsoons("Flydrake", ["Wind"], {"hp": 130, "attack": 60, "defense": 40}, ["Thunder Shock", "Tackle"]),
+    ]
 
     running = True
     while running:
