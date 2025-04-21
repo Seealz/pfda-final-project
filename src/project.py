@@ -125,15 +125,15 @@ def animate_attack(self, screen, opponent, move):
     # This animates physical movement 
         current_player_x = player_start_x + dx * step
         current_player_y = player_start_y + dy * step
-        screen.blit(self.front_sprite, (current_player_x, current_player_y)) # This draws player's sprite
+        screen.blit(self.front_sprite, (current_player_x, current_player_y)) # Draws player's sprite
 
         current_opponent_x = opponent_start_x + opponent_dx * step
         current_opponent_y = opponent_start_y + opponent_dy * step
-        screen.blit(opponent.front_sprite, (current_opponent_x, current_opponent_y))  # This draws opponent's sprite
+        screen.blit(opponent.front_sprite, (current_opponent_x, current_opponent_y))  # Draws opponent's sprite
 
         # This animates special effects
         if move.effect_image:
-            screen.blit(effect_image, (effect_pos_x, effect_pos_y))  # This draws the effect
+            screen.blit(effect_image, (effect_pos_x, effect_pos_y))  # Draws the effect
             effect_pos_x += dx  # This moves the effect towards the opponent
             effect_pos_y += dy
 
@@ -143,6 +143,16 @@ def animate_attack(self, screen, opponent, move):
     # This moves both player and opponent back to their original positions
     for step in range(steps):
         screen.fill(BG_COLOR)  # This clears the screen each frame
+
+        # This moves the player back to their original position
+        current_player_x = player_end_x - dx * (steps - step)
+        current_player_y = player_end_y - dy * (steps - step)
+        screen.blit(self.front_sprite, (current_player_x, current_player_y))  # Draws player's sprite
+
+        # This moves the opponent back to their original position
+        current_opponent_x = opponent_end_x - opponent_dx * (steps - step)
+        current_opponent_y = opponent_end_y - opponent_dy * (steps - step)
+        screen.blit(opponent.front_sprite, (current_opponent_x, current_opponent_y) # Draw's opponents's sprite
 
 
 def main():
