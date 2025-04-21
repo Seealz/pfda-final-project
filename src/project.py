@@ -103,6 +103,15 @@ def animate_attack(self, screen, opponent):
     dx = (end_x - start_x) / steps  # X movement per step
     dy = (end_y - start_y) / steps  # Y movement per step
 
+# This load the special effect
+    effect_image = None
+    if move.effect_image:
+        effect_image = pygame.image.load(move.effect_image)
+        effect_pos_x, effect_pos_y = start_x, start_y  # Starting position for special effect
+
+    start_time = pygame.time.get_ticks()
+
+    
 
 def main():
     pygame.init()
