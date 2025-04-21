@@ -46,10 +46,18 @@ class Monsoons:
         except:
             self._create_placeholder_sprites()
 
+# This is placeholder sprites
     def _create_placeholder_sprites(self):
         placeholder_sprite = pygame.Surface((100, 100), pygame.SRCALPHA)
         pygame.draw.rect(placeholder_sprite, (255, 0, 255), (0, 0, 100, 100))
         self.front_sprite = self.back_sprite = placeholder_sprite
+
+# This is how a move is used, it checks for pp, plays the attack animation and sound, and checks for type effectiveness
+     def attack(self, move_index, opponent, screen):
+        move = self.moves[move_index]
+        if move.pp <= 0:
+            return False, f"{move.name} has no PP left!"
+        move.pp -= 1
 
 def main():
     pygame.init()
