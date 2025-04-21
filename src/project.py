@@ -29,16 +29,22 @@ class Move:
         self.type = move_type
         self.power = power
         self.pp = pp
-       
-        sound_path = os.path.abspath(sound)
-if os.path.exists(sound_path):
-    self.sound = pygame.mixer.Sound(sound_path)
-else:
-    print(f"Error: Sound file '{sound_path}' does not exist!")
-    self.sound = None
+        self.effect_image = effect_image
+        self.is_physical = is_physical
 
-    self.effect_image = effect_image
-    self.is_physical = is_physical
+        if sound:
+            sound_path = os.path.abspath(sound)
+            try:
+                if os.path.exists(sound_path):
+                    self.sound = pygame.mixer.Sound(sound_path)  # Load sound safely
+                else:
+                    print(f"Error: Sound file '{sound_path}' does not exist!")
+                    self.sound = None
+            except pygame.error as e:
+                print(f"Error loading sound file: {sound_path}. Error: {e}")
+                self.sound = None
+        else:
+            self.sound = None
 
     def play_sound(self):
         if self.sound:
@@ -49,7 +55,7 @@ MOVES = {
     "Tackle": Move("Tackle", "Normal", 40, 35, "assets/sounds/tackle.wav", is_physical=True),
     "Ember": Move("Ember", "Fire", 50, 25, "assets/sounds/ember.wav", "assets/effects/ember.png", is_physical=False),
     "Water Gun": Move("Water Gun", "Water", 40, 25, "assets/sounds/water_gun.wav", "assets/effects/watergun.png", is_physical=False),
-    "Gust": Move("Gust", "Wind", 40, 25, "assets/sounds/gust.wav", "assets/effects/gust.png", is_physical=False)
+    "Gust": Move("Gust", "Wind", 40, 25, "", "assets/effects/gust.png", is_physical=False)
 }
 
 class Monsoons:
