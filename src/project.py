@@ -154,6 +154,16 @@ def animate_attack(self, screen, opponent, move):
         current_opponent_y = opponent_end_y - opponent_dy * (steps - step)
         screen.blit(opponent.front_sprite, (current_opponent_x, current_opponent_y) # Draw's opponents's sprite
 
+        # This animates special effects if there are any
+        if move.effect_image:
+            screen.blit(effect_image, (effect_pos_x, effect_pos_y))  # Draws the effect
+            effect_pos_x -= dx  # This moves the effect back
+            effect_pos_y -= dy
+
+        pygame.display.flip() 
+        pygame.time.delay(60) # This is the frame rate (animation speed)
+
+
 
 def main():
     pygame.init()
