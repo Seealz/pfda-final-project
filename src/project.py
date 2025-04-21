@@ -76,6 +76,14 @@ class Monsoons:
         self.stats["hp"] = max(0, self.stats["hp"] - amount)
         return self.stats["hp"] <= 0
     
+    # This is the way a move is animated
+    def animate_attack(self, screen, opponent):
+        
+        # Positions for the player and opponent
+        player_start_x = 100
+        player_start_y = 300
+        player_end_x = 500  
+        player_end_y = 100 
 
 def main():
     pygame.init()
