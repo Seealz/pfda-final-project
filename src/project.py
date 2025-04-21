@@ -70,99 +70,95 @@ def _create_placeholder_sprites(self):
 
 # This is how a move is used, it checks for pp, plays the attack animation and sound, and checks for type effectiveness
 def attack(self, move_index, opponent, screen):
-    move = self.moves[move_index]
-    if move.pp <= 0:
-        return False, f"{move.name} has no PP left!"
-    move.pp -= 1
-    self.animate_attack(screen, opponent, move)
-    move.play_sound()
-    damage = self._calculate_damage(move, opponent)
-    opponent.take_damage(damage)
-    return True, f"{self.name} used {move.name}!"
-    
-def _calculate_damage(self, move, opponent):
-    stab = 1.5 if move.type in self.types else 1.0
-    effectiveness = TYPE_EFFECTIVENESS[move.type][opponent.types[0]]
-    base = (move.power * self.stats["attack"] / opponent.stats["defense"])
-    return int(base * stab * effectiveness * random.uniform(0.85, 1.0))
+        move = self.moves[move_index]
+        if move.pp <= 0:
+            return False, f"{move.name} has no PP left!"
+        move.pp -= 1
+        self.animate_attack(screen, opponent, move)
+        move.play_sound()
+        damage = self._calculate_damage(move, opponent)
+        opponent.take_damage(damage)
+        return True, f"{self.name} used {move.name}!"
 
-    
+def _calculate_damage(self, move, opponent):
+        stab = 1.5 if move.type in self.types else 1.0
+        effectiveness = TYPE_EFFECTIVENESS[move.type][opponent.types[0]]
+        base = (move.power * self.stats["attack"] / opponent.stats["defense"])
+        return int(base * stab * effectiveness * random.uniform(0.85, 1.0))
+
 def take_damage(self, amount):
-    self.stats["hp"] = max(0, self.stats["hp"] - amount)
-    return self.stats["hp"] <= 0
+        self.stats["hp"] = max(0, self.stats["hp"] - amount)
+        return self.stats["hp"] <= 0
 
 def animate_attack(self, screen, opponent, move):
-    # Initial positions for the player and opponent
-    player_start_x = 100    # Player's X starting position
-    player_start_y = 300    # Player's Y starting position 
-    opponent_start_x = 500  # Opponent's starting X position
-    opponent_start_y = 100  # Opponent's starting Y position
-    
-    # End positions, Where the player and opponent will meet
-    player_end_x = opponent_start_x
-    player_end_y = opponent_start_y
-    opponent_end_x = player_start_x
-    opponent_end_y = player_start_y
+        # Initial positions for the player and opponent
+        player_start_x = 100
+        player_start_y = 300
+        opponent_start_x = 500
+        opponent_start_y = 100
 
-    # Time of animation in milliseconds
-    duration = 1000
-    steps = duration // 100  # Number of steps in the animation (frame rate control)
-    dx = (player_end_x - player_start_x) / steps  # X movement per step
-    dy = (player_end_y - player_start_y) / steps  # Y movement per step
-    
-    # For the opponent's movement (they move towards the player too)
-    opponent_dx = (opponent_end_x - opponent_start_x) / steps
-    opponent_dy = (opponent_end_y - opponent_start_y) / steps
-   
-   # This loads special effect images
-    effect_image = None
-    if move.effect_image:
-        effect_image = pygame.image.load(move.effect_image)
-        effect_pos_x, effect_pos_y = player_start_x, player_start_y  # Starting position for special effect
+        # End positions, where the player and opponent will meet
+        player_end_x = opponent_start_x
+        player_end_y = opponent_start_y
+        opponent_end_x = player_start_x
+        opponent_end_y = player_start_y
 
-    for step in range(steps):
-        screen.fill(BG_COLOR)  # This clears the screen each frame
+        # Time of animation in milliseconds
+        duration = 1000
+        steps = duration // 100
+        dx = (player_end_x - player_start_x) / steps
+        dy = (player_end_y - player_start_y) / steps
 
-    # This animates physical movement 
-        current_player_x = player_start_x + dx * step
-        current_player_y = player_start_y + dy * step
-        screen.blit(self.front_sprite, (current_player_x, current_player_y)) # Draws player's sprite
+        # For the opponent's movement
+        opponent_dx = (opponent_end_x - opponent_start_x) / steps
+        opponent_dy = (opponent_end_y - opponent_start_y) / steps
 
-        current_opponent_x = opponent_start_x + opponent_dx * step
-        current_opponent_y = opponent_start_y + opponent_dy * step
-        screen.blit(opponent.front_sprite, (current_opponent_x, current_opponent_y))  # Draws opponent's sprite
-
-        # This animates special effects
+        # Special effect images
+        effect_image = None
         if move.effect_image:
-            screen.blit(effect_image, (effect_pos_x, effect_pos_y))  # Draws the effect
-            effect_pos_x += dx  # This moves the effect towards the opponent
-            effect_pos_y += dy
+            effect_image = pygame.image.load(move.effect_image)
+            effect_pos_x, effect_pos_y = player_start_x, player_start_y
 
-        pygame.display.flip()  # This updates the display
-        pygame.time.delay(100) # This controls the animation speed
+        for step in range(steps):
+            screen.fill(BG_COLOR)
 
-    # This moves both player and opponent back to their original positions
-    for step in range(steps):
-        screen.fill(BG_COLOR)  # This clears the screen each frame
+            # Animates physical movement
+            current_player_x = player_start_x + dx * step
+            current_player_y = player_start_y + dy * step
+            screen.blit(self.front_sprite, (current_player_x, current_player_y))
 
-        # This moves the player back to their original position
-        current_player_x = player_end_x - dx * (steps - step)
-        current_player_y = player_end_y - dy * (steps - step)
-        screen.blit(self.front_sprite, (current_player_x, current_player_y))  # Draws player's sprite
+            current_opponent_x = opponent_start_x + opponent_dx * step
+            current_opponent_y = opponent_start_y + opponent_dy * step
+            screen.blit(opponent.front_sprite, (current_opponent_x, current_opponent_y))
 
-        # This moves the opponent back to their original position
-        current_opponent_x = opponent_end_x - opponent_dx * (steps - step)
-        current_opponent_y = opponent_end_y - opponent_dy * (steps - step)
-        screen.blit(opponent.front_sprite, (current_opponent_x, current_opponent_y)) # Draw's opponents's sprite
+            # Animates special effects
+            if move.effect_image:
+                screen.blit(effect_image, (effect_pos_x, effect_pos_y))
+                effect_pos_x += dx
+                effect_pos_y += dy
 
-        # This animates special effects if there are any
-        if move.effect_image:
-            screen.blit(effect_image, (effect_pos_x, effect_pos_y))  # Draws the effect
-            effect_pos_x -= dx  # This moves the effect back
-            effect_pos_y -= dy
+            pygame.display.flip()
+            pygame.time.delay(100)
 
-        pygame.display.flip() 
-        pygame.time.delay(60) # This is the frame rate (animation speed)
+        # Return to original positions
+        for step in range(steps):
+            screen.fill(BG_COLOR)
+
+            current_player_x = player_end_x - dx * (steps - step)
+            current_player_y = player_end_y - dy * (steps - step)
+            screen.blit(self.front_sprite, (current_player_x, current_player_y))
+
+            current_opponent_x = opponent_end_x - opponent_dx * (steps - step)
+            current_opponent_y = opponent_end_y - opponent_dy * (steps - step)
+            screen.blit(opponent.front_sprite, (current_opponent_x, current_opponent_y))
+
+            if move.effect_image:
+                screen.blit(effect_image, (effect_pos_x, effect_pos_y))
+                effect_pos_x -= dx
+                effect_pos_y -= dy
+
+            pygame.display.flip()
+            pygame.time.delay(60)
 
 def show_start_screen(screen):
     font = pygame.font.Font(None, 60)
@@ -188,6 +184,28 @@ def show_select_screen(screen, all_monsoons):
 
     while True:
         screen.fill((30, 30, 30))
+
+        title = pygame.font.Font(None, 48).render("Choose Your Monsoon", True, (255, 255, 255))
+        screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, 50))
+
+        for i, mon in enumerate(all_monsoons):
+            text_color = (255, 255, 0) if i == selected_index else (255, 255, 255)
+            label = font.render(mon.name, True, text_color)
+            screen.blit(label, (SCREEN_WIDTH // 2 - label.get_width() // 2, 150 + i * 40))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    selected_index = (selected_index - 1) % len(all_monsoons)
+                elif event.key == pygame.K_DOWN:
+                    selected_index = (selected_index + 1) % len(all_monsoons)
+                elif event.key == pygame.K_RETURN:
+                    return all_monsoons[selected_index]
         
 def main():
     pygame.init()
@@ -195,19 +213,28 @@ def main():
     pygame.display.set_caption("Monsoon Rumble")
     clock = pygame.time.Clock()
 
-  all_monsoons = [
+    show_start_screen(screen)
+
+    all_monsoons = [
         Monsoons("Thyladon", ["Normal"], {"hp": 150, "attack": 67, "defense": 40}, ["Ember", "Tackle"]),
         Monsoons("Baitfish", ["Water"], {"hp": 160, "attack": 54, "defense": 60}, ["Water Gun", "Tackle"]),
         Monsoons("Flydrake", ["Wind"], {"hp": 130, "attack": 60, "defense": 40}, ["Thunder Shock", "Tackle"]),
     ]
 
+    player = show_select_screen(screen, all_monsoons)
+
+    opponent = random.choice([m for m in all_monsoons if m != player])
+
     running = True
     while running:
         screen.fill(BG_COLOR)
         screen.blit(player.back_sprite, (100, 300))
-        screen.blit(enemy.front_sprite, (500, 100))
+        screen.blit(opponent.front_sprite, (500, 100))
         pygame.display.flip()
 
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
-    if__name__ == "__main__":
-    main()
+    if __name__ == "__main__":
+        main()
