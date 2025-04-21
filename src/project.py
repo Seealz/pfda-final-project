@@ -46,7 +46,10 @@ class Monsoons:
         except:
             self._create_placeholder_sprites()
 
-
+    def _create_placeholder_sprites(self):
+        placeholder_sprite = pygame.Surface((100, 100), pygame.SRCALPHA)
+        pygame.draw.rect(placeholder_sprite, (255, 0, 255), (0, 0, 100, 100))
+        self.front_sprite = self.back_sprite = placeholder_sprite
 
 def main():
     pygame.init()
