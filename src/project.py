@@ -152,7 +152,7 @@ def animate_attack(self, screen, opponent, move):
         # This moves the opponent back to their original position
         current_opponent_x = opponent_end_x - opponent_dx * (steps - step)
         current_opponent_y = opponent_end_y - opponent_dy * (steps - step)
-        screen.blit(opponent.front_sprite, (current_opponent_x, current_opponent_y) # Draw's opponents's sprite
+        screen.blit(opponent.front_sprite, (current_opponent_x, current_opponent_y)) # Draw's opponents's sprite
 
         # This animates special effects if there are any
         if move.effect_image:
@@ -163,13 +163,19 @@ def animate_attack(self, screen, opponent, move):
         pygame.display.flip() 
         pygame.time.delay(60) # This is the frame rate (animation speed)
 
-
-
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((SCREEN_HEIGHT, SCREEN_HEIGHT))
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Monsoon Rumble")
-    clock - pygame.time.Clock()
+    clock = pygame.time.Clock()
+
+
+    running = True
+    while running:
+        screen.fill(BG_COLOR)
+        screen.blit(player.back_sprite, (100, 300))
+        screen.blit(enemy.front_sprite, (500, 100))
+        pygame.display.flip()
 
 
     if__name__ == "__main__":
