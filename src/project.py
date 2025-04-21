@@ -18,6 +18,17 @@ TYPE_EFFECTIVENESS["Fire"].update({"Plant": 2.0, "Normal": 2.0, "Earth": 0.5, "W
 TYPE_EFFECTIVENESS["Water"].update({"Fire": 2.0, "Earth": 2.0, "Plant": 0.5, "Electric": 0.5})
 TYPE_EFFECTIVENESS["Plant"].update({"Water": 2.0, "Earth": 2.0, "Fire": 0.5, "Wind": 0.5})
 TYPE_EFFECTIVENESS["Normal"].update({"Psychic": 1.0, "Wind": 1.0})
+TYPE_EFFECTIVENESS["Wind"].update({"Fire": 2.0, "Plant": 2.0, "Earth": 0.5})
+TYPE_EFFECTIVENESS["Electric"].update({"Water": 2.0, "Wind": 2.0, "Earth": 0.5})
+TYPE_EFFECTIVENESS["Psychic"].update({"Normal": 1.0, "Water": 1.0, "Psychic": 0.5})
+TYPE_EFFECTIVENESS["Earth"].update({"Fire": 2.0, "Electric": 2.0, "Water": 0.5, "Plant": 0.5})
+
+# Moves List
+MOVES = {
+    "Tackle": {"type": "Normal", "power": 40, "pp": 35, "sound": "assets/sounds/tackle.wav"},
+    "Ember": {"type": "Fire", "power": 40, "pp": 25, "sound": "assets/sounds/ember.wav"},
+    "Water Gun": {"type": "Water", "power": 40, "pp": 25, "sound": "assets/sounds/water_gun.wav"}
+}
 
 class Monsoons:
     def __init__(self, name, element, stats, moves):
