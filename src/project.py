@@ -63,6 +63,15 @@ class Monsoons:
         damage = self._calculate_damage(move, opponent)
         opponent.take_damage(damage)
         return True, f"{self.name} used {move.name}!"
+    
+    def _calculate_damage(self, move, opponent):
+        stab_bonus = 1.5 if move.type in self.types else 1.0
+        effectiveness = TYPE_EFFECTIVENESS.get(move.type, {}).get(opponent.types[0], 1.0)
+        base_damage = (move.power * self.stats["attack"] / opponent.stats["defense"]) * effectiveness
+        damage = int(base_damage * stab_bonus)
+        
+        return damage
+    
 
 def main():
     pygame.init()
