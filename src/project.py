@@ -164,6 +164,11 @@ def animate_attack(self, screen, opponent, move):
         pygame.display.flip() 
         pygame.time.delay(60) # This is the frame rate (animation speed)
 
+def show_start_screen(screen):
+    font = pygame.font.Font(None, 60)
+    title_text = font.render("Monsoon Rumble", True, (255, 255, 255))
+    prompt_text = pygame.font.Font(None, 36).render("Press SPACE to Start", True, (200, 200, 200))
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -171,7 +176,7 @@ def main():
     clock = pygame.time.Clock()
 
   all_monsoons = [
-        Monsoons("Thyladon", ["Normal","Plant"], {"hp": 150, "attack": 67, "defense": 40}, ["Ember", "Tackle"]),
+        Monsoons("Thyladon", ["Normal"], {"hp": 150, "attack": 67, "defense": 40}, ["Ember", "Tackle"]),
         Monsoons("Baitfish", ["Water"], {"hp": 160, "attack": 54, "defense": 60}, ["Water Gun", "Tackle"]),
         Monsoons("Flydrake", ["Wind"], {"hp": 130, "attack": 60, "defense": 40}, ["Thunder Shock", "Tackle"]),
     ]
