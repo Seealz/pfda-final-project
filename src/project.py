@@ -23,11 +23,23 @@ TYPE_EFFECTIVENESS["Electric"].update({"Water": 2.0, "Wind": 2.0, "Earth": 0.5})
 TYPE_EFFECTIVENESS["Psychic"].update({"Normal": 1.0, "Water": 1.0, "Psychic": 0.5})
 TYPE_EFFECTIVENESS["Earth"].update({"Fire": 2.0, "Electric": 2.0, "Water": 0.5, "Plant": 0.5})
 
+class Move:
+    def __init__(self, name, move_type, power, pp, sound=None, effect_image=None, is_physical=False):
+        self.name = name
+        self.move_type = move_type  # e.g., 'Fire', 'Water', 'Normal'
+        self.power = power
+        self.pp = pp
+        self.sound = pygame.mixer.Sound(sound) if sound else None
+        self.effect_image = effect_image  # Special effect image
+        self.is_physical = is_physical   # physical movement
+
+    def play_sound(self):
+        if self.sound:
+            self.sound.play()
+
 # Moves List
 MOVES = {
-    "Tackle": {"type": "Normal", "power": 40, "pp": 35, "sound": "assets/sounds/tackle.wav"},
-    "Ember": {"type": "Fire", "power": 40, "pp": 25, "sound": "assets/sounds/ember.wav"},
-    "Water Gun": {"type": "Water", "power": 40, "pp": 25, "sound": "assets/sounds/water_gun.wav"}
+  
 }
 
 class Monsoons:
