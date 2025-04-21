@@ -112,7 +112,15 @@ def animate_attack(self, screen, opponent, move):
     # For the opponent's movement (they move towards the player too)
     opponent_dx = (opponent_end_x - opponent_start_x) / steps
     opponent_dy = (opponent_end_y - opponent_start_y) / steps
+   
+   # This loads special effect images
+    effect_image = None
+    if move.effect_image:
+        effect_image = pygame.image.load(move.effect_image)
+        effect_pos_x, effect_pos_y = player_start_x, player_start_y  # Starting position for special effect
+
     for step in range(steps):
+        screen.fill(BG_COLOR)  # This clears the screen each frame
         
 
 def main():
