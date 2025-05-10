@@ -46,14 +46,16 @@ class Monsoons:
 
     def load_sprites(self):
         try:
-            self.front_sprite = pygame.image.load(f"assets/sprites/{self.name.lower()}_front.png").convert_alpha()
-            self.back_sprite = pygame.image.load(f"assets/sprites/{self.name.lower()}_back.png").convert_alpha()
+            front = pygame.image.load(f"assets/sprites/{self.name.lower()}_front.png").convert_alpha()
+            back = pygame.image.load(f"assets/sprites/{self.name.lower()}_back.png").convert_alpha()
+            self.front_sprite = pygame.transform.scale(front, (150, 150))
+            self.back_sprite = pygame.transform.scale(back, (150, 150))
         except:
             self._create_placeholder_sprites()
 
     def _create_placeholder_sprites(self):
-        placeholder_sprite = pygame.Surface((100, 100), pygame.SRCALPHA)
-        pygame.draw.rect(placeholder_sprite, (255, 0, 255), (0, 0, 100, 100))
+        placeholder_sprite = pygame.Surface((150, 150), pygame.SRCALPHA)
+        pygame.draw.rect(placeholder_sprite, (255, 0, 255), (0, 0, 150, 150))
         self.front_sprite = self.back_sprite = placeholder_sprite
 
     def attack(self, move_index, opponent, screen):
@@ -74,6 +76,7 @@ class Monsoons:
     def take_damage(self, amount):
         self.stats["hp"] = max(0, self.stats["hp"] - amount)
         return self.stats["hp"] <= 0
+
 
 def draw_hp_bar(screen, x, y, current_hp, max_hp):
     pygame.draw.rect(screen, RED, (x, y, 200, 20))
