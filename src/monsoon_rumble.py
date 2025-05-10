@@ -121,11 +121,18 @@ def draw_battle_ui(screen, player, opponent, log, move_buttons):
     screen_width, screen_height = screen.get_size()
     screen.fill(WHITE)
 
-    screen.blit(player.back_sprite, (PLAYER_SPRITE_POS[0] + player.offset[0], PLAYER_SPRITE_POS[1] + player.offset[1]))
-    screen.blit(opponent.front_sprite, (OPPONENT_SPRITE_POS[0] + opponent.offset[0], OPPONENT_SPRITE_POS[1] + opponent.offset[1]))
+    player_x = screen_width // 4 - player.back_sprite.get_width() // 2 + player.offset[0]
+    player_y = screen_height // 2 + 100 + player.offset[1]
+    opponent_x = 3 * screen_width // 4 - opponent.front_sprite.get_width() // 2 + opponent.offset[0]
+    opponent_y = screen_height // 4 - 100 + opponent.offset[1]
 
-    draw_hp_bar(screen, PLAYER_SPRITE_POS[0], PLAYER_SPRITE_POS[1] - 30, player.display_hp, player.max_hp)
-    draw_hp_bar(screen, OPPONENT_SPRITE_POS[0], OPPONENT_SPRITE_POS[1] - 30, opponent.display_hp, opponent.max_hp)
+    screen.blit(player.back_sprite, (player_x, player_y))
+    screen.blit(opponent.front_sprite, (opponent_x, opponent_y))
+
+
+    draw_hp_bar(screen, player_x, player_y - 30, player.display_hp, player.max_hp)
+    draw_hp_bar(screen, opponent_x, opponent_y - 30, opponent.display_hp, opponent.max_hp)
+
 
     pygame.draw.rect(screen, MOVE_PANEL_COLOR, (50, screen_height - 200, screen_width - 100, 150))
     pygame.draw.rect(screen, (0, 0, 0), (50, screen_height - 200, screen_width - 100, 150), 2)
@@ -146,9 +153,10 @@ def draw_battle_ui(screen, player, opponent, log, move_buttons):
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     pygame.display.set_caption("Monsoon Rumble")
     clock = pygame.time.Clock()
+    
 
     global MOVES
     MOVES = {
