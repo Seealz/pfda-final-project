@@ -15,7 +15,6 @@ TEXT_BOX_COLOR = (240, 240, 240)
 # Type chart
 TYPES = ["Fire", "Water", "Plant", "Normal", "Wind", "Electric", "Psychic", "Earth"]
 TYPE_EFFECTIVENESS = {t: {op: 1.0 for op in TYPES} for t in TYPES}
-
 TYPE_EFFECTIVENESS["Fire"].update({"Plant": 2.0, "Normal": 2.0, "Earth": 0.5, "Wind": 0.5})
 TYPE_EFFECTIVENESS["Water"].update({"Fire": 2.0, "Earth": 2.0, "Plant": 0.5, "Electric": 0.5})
 TYPE_EFFECTIVENESS["Plant"].update({"Water": 2.0, "Earth": 2.0, "Fire": 0.5, "Wind": 0.5})
@@ -24,10 +23,6 @@ TYPE_EFFECTIVENESS["Electric"].update({"Water": 2.0, "Wind": 2.0, "Earth": 0.5})
 TYPE_EFFECTIVENESS["Psychic"].update({"Psychic": 0.5})
 TYPE_EFFECTIVENESS["Earth"].update({"Fire": 2.0, "Electric": 2.0, "Water": 0.5, "Plant": 0.5})
 TYPE_EFFECTIVENESS["Normal"].update({t: 1.0 for t in TYPES})
-
-# Load sounds (placeholders, actual files must exist)
-MOVE_SOUND = pygame.mixer.Sound("assets/sounds/move.wav")
-FAINT_SOUND = pygame.mixer.Sound("assets/sounds/faint.wav")
 
 class Move:
     def __init__(self, name, type, power, pp):
@@ -48,69 +43,210 @@ class Monsoons:
         self.speed = stats.get("speed", 50)
         self.status = None
         self.moves = []
+        
         for move_name in move_names:
             original_move = MOVES[move_name]
             self.moves.append(Move(original_move.name, original_move.type, original_move.power, original_move.max_pp))
-    
+        
+        # Load sprites
         try:
             front = pygame.image.load(f"assets/sprites/{name.lower()}_front.png").convert_alpha()
             back = pygame.image.load(f"assets/sprites/{name.lower()}_back.png").convert_alpha()
         except:
-            front = pygame.Surface((50, 50)); front.fill((255, 0, 0))
-            back = pygame.Surface((50, 50)); back.fill((0, 0, 255))
-
-        self.front_sprite = pygame.transform.scale(front, (front.get_width() * SPRITE_SCALE_FACTOR, front.get_height() * SPRITE_SCALE_FACTOR))
-        self.back_sprite = pygame.transform.scale(back, (back.get_width() * SPRITE_SCALE_FACTOR, back.get_height() * SPRITE_SCALE_FACTOR))
+            front = pygame.Surface((50, 50))
+            front.fill((255, 0, 0))
+            back = pygame.Surface((50, 50))
+            back.fill((0, 0, 255))
+        
+        self.front_sprite = pygame.transform.scale(front, 
+            (front.get_width() * SPRITE_SCALE_FACTOR, front.get_height() * SPRITE_SCALE_FACTOR))
+        self.back_sprite = pygame.transform.scale(back, 
+            (back.get_width() * SPRITE_SCALE_FACTOR, back.get_height() * SPRITE_SCALE_FACTOR))
 
     def attack(self, move_index, target):
         move = self.moves[move_index]
         if move.pp <= 0:
             return f"{self.name} tried to use {move.name} but it's out of PP!"
-
+        
         if self.status == "Paralyzed" and random.random() < 0.25:
             return f"{self.name} is paralyzed and couldn't move!"
-
+        
         if self.status == "Confused" and random.random() < 0.5:
             self.hp = max(0, self.hp - 10)
             return f"{self.name} is confused and hurt itself!"
-
-        MOVE_SOUND.play()
+        
         move.pp -= 1
         multiplier = 1.0
         for t in target.types:
             multiplier *= TYPE_EFFECTIVENESS.get(move.type, {}).get(t, 1.0)
+        
         damage = max(1, int((move.power + self.attack_stat - target.defense) * multiplier))
         target.hp = max(0, target.hp - damage)
-
+        
         log = f"{self.name} used {move.name}! It dealt {damage} damage."
         if multiplier > 1:
             log += " It's super effective!"
         elif multiplier < 1:
             log += " It's not very effective."
-
+        
+        # Status effects
         if move.name == "Confuse Ray":
             target.status = "Confused"
             log += f" {target.name} became confused!"
-
-        if move.name == "Thunder Wave":
+        elif move.name == "Thunder Wave":
             target.status = "Paralyzed"
             log += f" {target.name} is paralyzed!"
-
+        
         if target.hp <= 0:
-            FAINT_SOUND.play()
             log += f" {target.name} fainted!"
-
+        
         return log
+
+def draw_hp_bar(screen, x, y, current_hp, max_hp):
+    ratio = current_hp / max_hp
+    pygame.draw.rect(screen, (0, 0, 0), (x, y, 100, 10), 1)
+    pygame.draw.rect(screen, (0, 255, 0), (x, y, int(100 * ratio), 10))
+
+def draw_battle_ui(screen, player, opponent, log, move_buttons):
+    # Draw sprites
+    screen.blit(player.back_sprite, PLAYER_SPRITE_POS)
+    screen.blit(opponent.front_sprite, OPPONENT_SPRITE_POS)
     
-    def battle_turn(player, opponent, player_move_index, opponent_move_index, log):
-        first, second = (player, opponent)
-        first_move, second_move = (player_move_index, opponent_move_index)
+    # Draw HP bars
+    draw_hp_bar(screen, PLAYER_SPRITE_POS[0], PLAYER_SPRITE_POS[1] - 30, player.hp, player.max_hp)
+    draw_hp_bar(screen, OPPONENT_SPRITE_POS[0], OPPONENT_SPRITE_POS[1] - 30, opponent.hp, opponent.max_hp)
+    
+    # Draw move panel
+    pygame.draw.rect(screen, MOVE_PANEL_COLOR, (50, 400, 700, 150))
+    pygame.draw.rect(screen, (0, 0, 0), (50, 400, 700, 150), 2)
+    
+    # Draw moves
+    font = pygame.font.Font(None, 28)
+    for i, (rect, move_idx) in enumerate(move_buttons):
+        move = player.moves[move_idx]
+        text_color = (0, 0, 0) if move.pp > 0 else (150, 150, 150)
+        label = font.render(f"{move.name} (PP: {move.pp})", True, text_color)
+        screen.blit(label, rect)
+    
+    # Draw text box
+    pygame.draw.rect(screen, TEXT_BOX_COLOR, (50, SCREEN_HEIGHT - 150, SCREEN_WIDTH - 100, 130))
+    pygame.draw.rect(screen, (0, 0, 0), (50, SCREEN_HEIGHT - 150, SCREEN_WIDTH - 100, 130), 2)
+    font = pygame.font.Font(None, 24)
+    for i, line in enumerate(log[-5:]):
+        text_surface = font.render(line, True, (0, 0, 0))
+        screen.blit(text_surface, (60, SCREEN_HEIGHT - 140 + i * 24))
 
-        if opponent.speed > player.speed:
-            first, second = opponent, player
-            first_move, second_move = opponent_move_index, player_move_index
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Monsoon Rumble")
+    clock = pygame.time.Clock()
 
-        log.append(first.attack(first_move, second))
-        if second.hp > 0:
-            log.append(second.attack(second_move, first))
+    global MOVES
+    MOVES = {
+        "Tackle": Move("Tackle", "Normal", 40, 35),
+        "Ember": Move("Ember", "Fire", 50, 25),
+        "Water Gun": Move("Water Gun", "Water", 40, 25),
+        "Gust": Move("Gust", "Wind", 40, 25),
+        "Vine Whip": Move("Vine Whip", "Plant", 45, 25),
+        "Confuse Ray": Move("Confuse Ray", "Psychic", 40, 20),
+        "Shock": Move("Shock", "Electric", 45, 25),
+        "Quake": Move("Quake", "Earth", 50, 20),
+        "Thunder Wave": ("Thunder Wave", "Electric" 1, 25)
+    }
 
+    all_monsoons = [
+        Monsoons("Voltail", ["Electric"], {"hp": 100, "attack": 40, "defense": 35, "speed": 200}, ["Shock", "Tackle"]),
+        Monsoons("Burnrat", ["Fire"], {"hp": 90, "attack": 50, "defense": 25, "speed": 120}, ["Ember", "Tackle"]),
+        Monsoons("Thyladon", ["Plant"], {"hp": 110, "attack": 35, "defense": 40, "speed": 156}, ["Vine Whip", "Tackle"]),
+        Monsoons("Pseye", ["Psychic"], {"hp": 95, "attack": 45, "defense": 30, "speed": 94}, ["Confuse Ray", "Tackle"]),
+        Monsoons("Flydo", ["Wind"], {"hp": 85, "attack": 40, "defense": 25, "speed": 177}, ["Gust", "Tackle"]),
+        Monsoons("Drillizard", ["Earth"], {"hp": 120, "attack": 50, "defense": 45, "speed": 133}, ["Quake", "Tackle"]),
+        Monsoons("Clawdon", ["Normal"], {"hp": 100, "attack": 45, "defense": 30, "speed": 150}, ["Tackle"]),
+        Monsoons("Baitinphish", ["Water"], {"hp": 105, "attack": 42, "defense": 35, "speed": 50}, ["Water Gun", "Tackle"]),
+        Monsoons("Cataboo", ["Psychic"], {"hp": 95, "attack": 38, "defense": 32, "speed": 100}, ["Confuse Ray", "Tackle"])
+    ]
+
+    running = True
+    while running:
+        player = random.choice(all_monsoons)
+        opponent = random.choice([m for m in all_monsoons if m != player])
+        
+        # Reset battle state
+        player.hp = player.max_hp
+        opponent.hp = opponent.max_hp
+        for move in player.moves + opponent.moves:
+            move.pp = move.max_pp
+        
+        battle_log = ["Battle Start!"]
+        turn = 0
+        
+        while player.hp > 0 and opponent.hp > 0:
+            screen.fill(BG_COLOR)
+            
+            # Generate move buttons
+            move_buttons = []
+            font = pygame.font.Font(None, 28)
+            for i, move in enumerate(player.moves):
+                x = 70 + (i % 2) * 350
+                y = 420 + (i // 2) * 40
+                rect = pygame.Rect(x, y, 300, 30)
+                move_buttons.append((rect, i))
+            
+            # Draw UI
+            draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
+            pygame.display.flip()
+            
+            # Get player input
+            selected_move = None
+            while selected_move is None:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
+                        pygame.quit()
+                        return
+                    
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        for rect, move_idx in move_buttons:
+                            if rect.collidepoint(event.pos) and player.moves[move_idx].pp > 0:
+                                selected_move = move_idx
+                
+                clock.tick(FPS)
+            
+            # Battle turn
+            opponent_move = random.choice([i for i, m in enumerate(opponent.moves) if m.pp > 0])
+            turn_log = []
+            
+            # Speed-based turn order
+            if player.speed >= opponent.speed:
+                turn_log.append(player.attack(selected_move, opponent))
+                if opponent.hp > 0:
+                    turn_log.append(opponent.attack(opponent_move, player))
+            else:
+                turn_log.append(opponent.attack(opponent_move, player))
+                if player.hp > 0:
+                    turn_log.append(player.attack(selected_move, opponent))
+            
+            battle_log.extend(turn_log)
+            turn += 1
+            
+            # Check battle end
+            if player.hp <= 0 or opponent.hp <= 0:
+                break
+        
+        # Battle end
+        if player.hp <= 0:
+            battle_log.append("You lost the battle!")
+        else:
+            battle_log.append("You won the battle!")
+        
+        # Show final state
+        screen.fill(BG_COLOR)
+        draw_battle_ui(screen, player, opponent, battle_log, [])
+        pygame.display.flip()
+        pygame.time.wait(3000)
+
+    pygame.quit()
+
+if __name__ == "__main__":
+    main()
