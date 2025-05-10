@@ -1,139 +1,111 @@
 import pygame
 import random
-import os
 
-# Constants
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 FPS = 60
-BG_COLOR = (0, 0, 0)
+BG_COLOR = (245, 245, 245)
 WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
-
-# Typings
-TYPES = ["Fire", "Water", "Plant", "Normal", "Wind", "Electric", "Psychic", "Earth"]
-TYPE_EFFECTIVENESS = {t: {op: 1.0 for op in TYPES} for t in TYPES}
-
-# Strengths and Weaknesses
-TYPE_EFFECTIVENESS["Fire"].update({"Plant": 2.0, "Normal": 2.0, "Earth": 0.5, "Wind": 0.5})
-TYPE_EFFECTIVENESS["Water"].update({"Fire": 2.0, "Earth": 2.0, "Plant": 0.5, "Electric": 0.5})
-TYPE_EFFECTIVENESS["Plant"].update({"Water": 2.0, "Earth": 2.0, "Fire": 0.5, "Wind": 0.5})
-TYPE_EFFECTIVENESS["Wind"].update({"Fire": 2.0, "Plant": 2.0, "Earth": 0.5})
-TYPE_EFFECTIVENESS["Electric"].update({"Water": 2.0, "Wind": 2.0, "Earth": 0.5})
-TYPE_EFFECTIVENESS["Psychic"].update({"Psychic": 0.5})
-TYPE_EFFECTIVENESS["Earth"].update({"Fire": 2.0, "Electric": 2.0, "Water": 0.5, "Plant": 0.5})
-TYPE_EFFECTIVENESS["Normal"].update({t: 1.0 for t in TYPES})
-
 
 class Move:
-    def __init__(self, name, move_type, power, pp, sound=None, effect_image=None, is_physical=False):
+    def __init__(self, name, type, power, pp):
         self.name = name
-        self.type = move_type
+        self.type = type
         self.power = power
         self.pp = pp
-        self.effect_image = effect_image
-        self.is_physical = is_physical
-        self.sound = None
-
 
 class Monsoons:
     def __init__(self, name, types, stats, move_names):
         self.name = name
         self.types = types
-        self.stats = stats
         self.max_hp = stats["hp"]
-        self.hp = self.max_hp
+        self.hp = stats["hp"]
+        self.attack_stat = stats["attack"]
+        self.defense = stats["defense"]
+        self.move_names = move_names
         self.moves = [MOVES[name] for name in move_names]
-        self.load_sprites()
+        
+        # This loads sprites
+        self.front_sprite = pygame.image.load(f"assets/sprites/{name.lower()}_front.png").convert_alpha()
+        self.back_sprite = pygame.image.load(f"assets/sprites/{name.lower()}_back.png").convert_alpha()
 
-    def load_sprites(self):
-        try:
-            front = pygame.image.load(f"assets/sprites/{self.name.lower()}_front.png").convert_alpha()
-            back = pygame.image.load(f"assets/sprites/{self.name.lower()}_back.png").convert_alpha()
-            self.front_sprite = pygame.transform.scale(front, (250, 250))  # Increased size
-            self.back_sprite = pygame.transform.scale(back, (250, 250))    # Increased size
-        except:
-            self._create_placeholder_sprites()
 
-    def _create_placeholder_sprites(self):
-        placeholder_sprite = pygame.Surface((250, 250), pygame.SRCALPHA)
-        pygame.draw.rect(placeholder_sprite, (255, 0, 255), (0, 0, 250, 250))
-        self.front_sprite = self.back_sprite = placeholder_sprite
-
-    def attack(self, move_index, opponent, screen):
+    def attack(self, move_index, target):
         move = self.moves[move_index]
         if move.pp <= 0:
-            return False, f"{self.name} tried to use {move.name}, but there's no PP left!"
+            return 0, f"{self.name} tried to use {move.name} but it's out of PP!"
         move.pp -= 1
-        damage = self._calculate_damage(move, opponent)
-        opponent.take_damage(damage)
-        return True, f"{self.name} used {move.name}! It dealt {damage} damage."
-
-    def _calculate_damage(self, move, opponent):
-        stab = 1.5 if move.type in self.types else 1.0
-        effectiveness = TYPE_EFFECTIVENESS[move.type][opponent.types[0]]
-        base = (move.power * self.stats["attack"] / opponent.stats["defense"])
-        return int(base * stab * effectiveness * random.uniform(0.85, 1.0))
-
-    def take_damage(self, amount):
-        self.hp = max(0, self.hp - amount)
-        return self.hp <= 0
-
+        damage = max(1, move.power + self.attack_stat - target.defense)
+        target.hp = max(0, target.hp - damage)
+        return damage, f"{self.name} used {move.name}! It dealt {damage} damage!"
 
 def draw_hp_bar(screen, x, y, current_hp, max_hp):
-    pygame.draw.rect(screen, RED, (x, y, 200, 20))
-    green_width = int((current_hp / max_hp) * 200)
-    pygame.draw.rect(screen, GREEN, (x, y, green_width, 20))
-
+    ratio = current_hp / max_hp
+    pygame.draw.rect(screen, (0, 0, 0), (x, y, 100, 10), 1)
+    pygame.draw.rect(screen, (0, 255, 0), (x, y, int(100 * ratio), 10))
 
 def draw_text_box(screen, text):
-    font = pygame.font.Font(None, 28)
-    box = pygame.Rect(50, 500, 700, 80)
-    pygame.draw.rect(screen, (50, 50, 50), box)
-    pygame.draw.rect(screen, WHITE, box, 2)
-    rendered_text = font.render(text, True, WHITE)
-    screen.blit(rendered_text, (box.x + 10, box.y + 30))
-
+    font = pygame.font.Font(None, 32)
+    text_surface = font.render(text, True, (0, 0, 0))
+    pygame.draw.rect(screen, WHITE, (50, SCREEN_HEIGHT - 100, SCREEN_WIDTH - 100, 80))
+    pygame.draw.rect(screen, (0, 0, 0), (50, SCREEN_HEIGHT - 100, SCREEN_WIDTH - 100, 80), 2)
+    screen.blit(text_surface, (60, SCREEN_HEIGHT - 80))
 
 def show_start_screen(screen):
-    font = pygame.font.Font(None, 60)
-    title = font.render("Monsoon Rumble", True, WHITE)
-    prompt = pygame.font.Font(None, 36).render("Click to Start", True, (200, 200, 200))
-    while True:
-        screen.fill(BG_COLOR)
-        screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, 200))
-        screen.blit(prompt, (SCREEN_WIDTH // 2 - prompt.get_width() // 2, 300))
-        pygame.display.flip()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit(); exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                return
-
+    font = pygame.font.Font(None, 64)
+    screen.fill((220, 220, 220))
+    title = font.render("Monsoon Rumble", True, (0, 0, 0))
+    screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, SCREEN_HEIGHT // 3))
+    pygame.display.flip()
+    pygame.time.wait(2000)
 
 def show_select_screen(screen, all_monsoons):
     font = pygame.font.Font(None, 36)
-    button_rects = []
+    selection_text = font.render("Select your Monsoon:", True, (0, 0, 0))
+    screen.fill((220, 220, 220))
+    screen.blit(selection_text, (SCREEN_WIDTH // 2 - selection_text.get_width() // 2, 100))
+
+    monsoon_buttons = []
+    for i, monsoon in enumerate(all_monsoons):
+        label = font.render(monsoon.name, True, (0, 0, 0))
+        rect = label.get_rect(topleft=(SCREEN_WIDTH // 2 - label.get_width() // 2, 200 + i * 40))
+        pygame.draw.rect(screen, (240, 240, 240), rect.inflate(20, 10))
+        pygame.draw.rect(screen, (0, 0, 0), rect.inflate(20, 10), 2)
+        screen.blit(label, rect)
+        monsoon_buttons.append((rect, i))
+
+    pygame.display.flip()
+
+    selected_monsoon = None
+    while selected_monsoon is None:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for rect, i in monsoon_buttons:
+                    if rect.collidepoint(event.pos):
+                        selected_monsoon = all_monsoons[i]
+                        return selected_monsoon
+
+def show_end_screen(screen, message, color):
+    font = pygame.font.Font(None, 64)
+    small_font = pygame.font.Font(None, 36)
     while True:
-        screen.fill((30, 30, 30))
-        title = pygame.font.Font(None, 48).render("Choose Your Monsoon", True, WHITE)
-        screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, 50))
-        button_rects.clear()
-        for i, mon in enumerate(all_monsoons):
-            label = font.render(mon.name, True, WHITE)
-            rect = label.get_rect(center=(SCREEN_WIDTH // 2, 150 + i * 60))
-            screen.blit(label, rect.topleft)
-            button_rects.append((rect, mon))
+        screen.fill((220, 220, 220))
+        msg = font.render(message, True, color)
+        button_text = small_font.render("Return to Main Menu", True, (0, 0, 0))
+        button_rect = button_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 100))
+        pygame.draw.rect(screen, (240, 240, 240), button_rect.inflate(20, 10))
+        pygame.draw.rect(screen, (0, 0, 0), button_rect.inflate(20, 10), 2)
+        screen.blit(msg, (SCREEN_WIDTH // 2 - msg.get_width() // 2, SCREEN_HEIGHT // 2 - 60))
+        screen.blit(button_text, button_rect)
         pygame.display.flip()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit(); exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                for rect, mon in button_rects:
-                    if rect.collidepoint(event.pos):
-                        return mon
-
+                pygame.quit()
+                exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN and button_rect.collidepoint(event.pos):
+                return
 
 def main():
     pygame.init()
@@ -170,25 +142,20 @@ def main():
         show_start_screen(screen)
         player = show_select_screen(screen, all_monsoons)
         opponent = random.choice([m for m in all_monsoons if m != player])
-
         player.hp = player.max_hp
         opponent.hp = opponent.max_hp
 
         running_battle = True
         battle_text = "Battle Start!"
         while running_battle:
+            screen.fill(BG_COLOR)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running_battle = False
                     running_global = False
 
-            if not running_global:
-                break
-
-            screen.fill(BG_COLOR)
             screen.blit(player.back_sprite, (100, 300))
             screen.blit(opponent.front_sprite, (500, 100))
-
             draw_hp_bar(screen, 100, 270, player.hp, player.max_hp)
             draw_hp_bar(screen, 500, 70, opponent.hp, opponent.max_hp)
             draw_text_box(screen, battle_text)
@@ -202,44 +169,38 @@ def main():
                 move_buttons.append((rect, i))
 
             pygame.display.flip()
-
             selected_move = None
             while selected_move is None:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        running_battle = False
-                        running_global = False
-                        break
+                        pygame.quit()
+                        return
                     elif event.type == pygame.MOUSEBUTTONDOWN:
                         for rect, i in move_buttons:
                             if rect.collidepoint(event.pos):
                                 selected_move = i
-                if not running_battle:
-                    break
+                clock.tick(FPS)
 
-            if not running_battle or not running_global:
-                break
-
-            _, msg = player.attack(selected_move, opponent, screen)
-            battle_text = msg
+            _, battle_text = player.attack(selected_move, opponent)
             if opponent.hp <= 0:
                 battle_text += f" {opponent.name} fainted!"
+                pygame.display.flip()
                 pygame.time.wait(1500)
+                show_end_screen(screen, "You Win!", (0, 200, 0))
                 break
 
             opponent_move = random.choice([i for i, m in enumerate(opponent.moves) if m.pp > 0])
-            _, msg = opponent.attack(opponent_move, player, screen)
-            battle_text = msg
+            _, battle_text = opponent.attack(opponent_move, player)
             if player.hp <= 0:
                 battle_text += f" {player.name} fainted!"
+                pygame.display.flip()
                 pygame.time.wait(1500)
+                show_end_screen(screen, "You Lose!", (200, 0, 0))
                 break
 
             clock.tick(FPS)
 
     pygame.quit()
-    exit()
-
 
 if __name__ == "__main__":
     main()
