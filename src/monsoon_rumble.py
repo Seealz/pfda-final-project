@@ -38,17 +38,19 @@ class Monsoons:
         self.types = types
         self.max_hp = stats["hp"]
         self.hp = stats["hp"]
+        self.display_hp = self.hp  # HP bar animation
         self.attack_stat = stats["attack"]
         self.defense = stats["defense"]
         self.speed = stats.get("speed", 50)
         self.status = None
         self.moves = []
+        self.offset = [0, 0]
+
         
         for move_name in move_names:
             original_move = MOVES[move_name]
             self.moves.append(Move(original_move.name, original_move.type, original_move.power, original_move.max_pp))
-        
-        # Load sprites
+
         try:
             front = pygame.image.load(f"assets/sprites/{name.lower()}_front.png").convert_alpha()
             back = pygame.image.load(f"assets/sprites/{name.lower()}_back.png").convert_alpha()
@@ -58,19 +60,17 @@ class Monsoons:
             back = pygame.Surface((50, 50))
             back.fill((0, 0, 255))
         
-        self.front_sprite = pygame.transform.scale(front, 
-            (front.get_width() * SPRITE_SCALE_FACTOR, front.get_height() * SPRITE_SCALE_FACTOR))
-        self.back_sprite = pygame.transform.scale(back, 
-            (back.get_width() * SPRITE_SCALE_FACTOR, back.get_height() * SPRITE_SCALE_FACTOR))
+        self.front_sprite = pygame.transform.scale(front, (front.get_width() * SPRITE_SCALE_FACTOR, front.get_height() * SPRITE_SCALE_FACTOR))
+        self.back_sprite = pygame.transform.scale(back, (back.get_width() * SPRITE_SCALE_FACTOR, back.get_height() * SPRITE_SCALE_FACTOR))
 
     def attack(self, move_index, target):
         move = self.moves[move_index]
         if move.pp <= 0:
             return f"{self.name} tried to use {move.name} but it's out of PP!"
-        
+
         if self.status == "Paralyzed" and random.random() < 0.25:
             return f"{self.name} is paralyzed and couldn't move!"
-        
+
         if self.status == "Confused" and random.random() < 0.5:
             self.hp = max(0, self.hp - 10)
             return f"{self.name} is confused and hurt itself!"
@@ -79,56 +79,50 @@ class Monsoons:
         multiplier = 1.0
         for t in target.types:
             multiplier *= TYPE_EFFECTIVENESS.get(move.type, {}).get(t, 1.0)
-        
+
         damage = max(1, int((move.power + self.attack_stat - target.defense) * multiplier))
         target.hp = max(0, target.hp - damage)
-        
+
         log = f"{self.name} used {move.name}! It dealt {damage} damage."
         if multiplier > 1:
             log += " It's super effective!"
         elif multiplier < 1:
             log += " It's not very effective."
-        
-        # Status effects
+
         if move.name == "Confuse Ray":
             target.status = "Confused"
             log += f" {target.name} became confused!"
         elif move.name == "Thunder Wave":
             target.status = "Paralyzed"
             log += f" {target.name} is paralyzed!"
-        
+
         if target.hp <= 0:
             log += f" {target.name} fainted!"
-        
+
         return log
 
-def draw_hp_bar(screen, x, y, current_hp, max_hp):
-    ratio = current_hp / max_hp
+def draw_hp_bar(screen, x, y, display_hp, max_hp):
+    ratio = display_hp / max_hp
     pygame.draw.rect(screen, (0, 0, 0), (x, y, 100, 10), 1)
     pygame.draw.rect(screen, (0, 255, 0), (x, y, int(100 * ratio), 10))
 
 def draw_battle_ui(screen, player, opponent, log, move_buttons):
-    # Draw sprites
-    screen.blit(player.back_sprite, PLAYER_SPRITE_POS)
-    screen.blit(opponent.front_sprite, OPPONENT_SPRITE_POS)
-    
-    # Draw HP bars
-    draw_hp_bar(screen, PLAYER_SPRITE_POS[0], PLAYER_SPRITE_POS[1] - 30, player.hp, player.max_hp)
-    draw_hp_bar(screen, OPPONENT_SPRITE_POS[0], OPPONENT_SPRITE_POS[1] - 30, opponent.hp, opponent.max_hp)
-    
-    # Draw move panel
+    screen.blit(player.back_sprite, (PLAYER_SPRITE_POS[0] + player.offset[0], PLAYER_SPRITE_POS[1] + player.offset[1]))
+    screen.blit(opponent.front_sprite, (OPPONENT_SPRITE_POS[0] + opponent.offset[0], OPPONENT_SPRITE_POS[1] + opponent.offset[1]))
+
+    draw_hp_bar(screen, PLAYER_SPRITE_POS[0], PLAYER_SPRITE_POS[1] - 30, player.display_hp, player.max_hp)
+    draw_hp_bar(screen, OPPONENT_SPRITE_POS[0], OPPONENT_SPRITE_POS[1] - 30, opponent.display_hp, opponent.max_hp)
+
     pygame.draw.rect(screen, MOVE_PANEL_COLOR, (50, 400, 700, 150))
     pygame.draw.rect(screen, (0, 0, 0), (50, 400, 700, 150), 2)
-    
-    # Draw moves
+
     font = pygame.font.Font(None, 28)
     for i, (rect, move_idx) in enumerate(move_buttons):
         move = player.moves[move_idx]
         text_color = (0, 0, 0) if move.pp > 0 else (150, 150, 150)
         label = font.render(f"{move.name} (PP: {move.pp})", True, text_color)
         screen.blit(label, rect)
-    
-    # Draw text box
+
     pygame.draw.rect(screen, TEXT_BOX_COLOR, (50, SCREEN_HEIGHT - 150, SCREEN_WIDTH - 100, 130))
     pygame.draw.rect(screen, (0, 0, 0), (50, SCREEN_HEIGHT - 150, SCREEN_WIDTH - 100, 130), 2)
     font = pygame.font.Font(None, 24)
@@ -211,8 +205,22 @@ def main():
                         for rect, move_idx in move_buttons:
                             if rect.collidepoint(event.pos) and player.moves[move_idx].pp > 0:
                                 selected_move = move_idx
-                
-                clock.tick(FPS)
+                for _ in range(15):  # Adjust for speed/smoothness
+                    if player.display_hp > player.hp:
+                        player.display_hp -= max(1, (player.display_hp - player.hp) // 4)
+                    if player.display_hp < player.hp:
+                        player.display_hp += max(1, (player.hp - player.display_hp) // 4)
+
+                    if opponent.display_hp > opponent.hp:
+                        opponent.display_hp -= max(1, (opponent.display_hp - opponent.hp) // 4)
+                    if opponent.display_hp < opponent.hp:
+                        opponent.display_hp += max(1, (opponent.hp - opponent.display_hp) // 4)
+
+                    screen.fill(BG_COLOR)
+                    draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
+                    pygame.display.flip()
+                    
+                    clock.tick(60)
             
             # Battle turn
             opponent_move = random.choice([i for i, m in enumerate(opponent.moves) if m.pp > 0])
