@@ -152,19 +152,20 @@ def main():
         "Confuse Ray": Move("Confuse Ray", "Psychic", 40, 20),
         "Shock": Move("Shock", "Electric", 45, 25),
         "Quake": Move("Quake", "Earth", 50, 20),
+        "Confuse Ray": Move("Confuse Ray", "Psychic", 3, 25),
         "Thunder Wave": ("Thunder Wave", "Electric" 1, 25)
     }
 
     all_monsoons = [
-        Monsoons("Voltail", ["Electric"], {"hp": 100, "attack": 40, "defense": 35, "speed": 200}, ["Shock", "Tackle"]),
-        Monsoons("Burnrat", ["Fire"], {"hp": 90, "attack": 50, "defense": 25, "speed": 120}, ["Ember", "Tackle"]),
-        Monsoons("Thyladon", ["Plant"], {"hp": 110, "attack": 35, "defense": 40, "speed": 156}, ["Vine Whip", "Tackle"]),
-        Monsoons("Pseye", ["Psychic"], {"hp": 95, "attack": 45, "defense": 30, "speed": 94}, ["Confuse Ray", "Tackle"]),
-        Monsoons("Flydo", ["Wind"], {"hp": 85, "attack": 40, "defense": 25, "speed": 177}, ["Gust", "Tackle"]),
-        Monsoons("Drillizard", ["Earth"], {"hp": 120, "attack": 50, "defense": 45, "speed": 133}, ["Quake", "Tackle"]),
-        Monsoons("Clawdon", ["Normal"], {"hp": 100, "attack": 45, "defense": 30, "speed": 150}, ["Tackle"]),
-        Monsoons("Baitinphish", ["Water"], {"hp": 105, "attack": 42, "defense": 35, "speed": 50}, ["Water Gun", "Tackle"]),
-        Monsoons("Cataboo", ["Psychic"], {"hp": 95, "attack": 38, "defense": 32, "speed": 100}, ["Confuse Ray", "Tackle"])
+        Monsoons("Voltail", ["Electric"], {"hp": 160, "attack": 30, "defense": 35, "speed": 200}, ["Shock", "Tackle"]),
+        Monsoons("Burnrat", ["Fire"], {"hp": 158, "attack": 25, "defense": 25, "speed": 120}, ["Ember", "Tackle"]),
+        Monsoons("Thyladon", ["Plant"], {"hp": 110, "attack": 45, "defense": 40, "speed": 156}, ["Vine Whip", "Tackle"]),
+        Monsoons("Pseye", ["Psychic"], {"hp": 144, "attack": 45, "defense": 30, "speed": 94}, ["Confuse Ray", "Tackle"]),
+        Monsoons("Flydo", ["Wind"], {"hp": 166, "attack": 30, "defense": 25, "speed": 177}, ["Gust", "Tackle"]),
+        Monsoons("Drillizard", ["Earth"], {"hp": 123, "attack": 50, "defense": 65, "speed": 133}, ["Quake", "Tackle"]),
+        Monsoons("Clawdon", ["Normal"], {"hp": 235, "attack": 45, "defense": 40, "speed": 150}, ["Tackle", "Ember"]),
+        Monsoons("Baitinphish", ["Water"], {"hp": 365, "attack": 22, "defense": 55, "speed": 50}, ["Water Gun", "Tackle"]),
+        Monsoons("Cataboo", ["Psychic"], {"hp": 200, "attack": 38, "defense": 32, "speed": 100}, ["Confuse Ray", "Gust"])
     ]
 
     running = True
