@@ -61,4 +61,43 @@ class Monsoons:
 
         self.front_sprite = pygame.transform.scale(front, (front.get_width() * SPRITE_SCALE_FACTOR, front.get_height() * SPRITE_SCALE_FACTOR))
         self.back_sprite = pygame.transform.scale(back, (back.get_width() * SPRITE_SCALE_FACTOR, back.get_height() * SPRITE_SCALE_FACTOR))
-        
+
+    def attack(self, move_index, target):
+        move = self.moves[move_index]
+        if move.pp <= 0:
+            return f"{self.name} tried to use {move.name} but it's out of PP!"
+
+        if self.status == "Paralyzed" and random.random() < 0.25:
+            return f"{self.name} is paralyzed and couldn't move!"
+
+        if self.status == "Confused" and random.random() < 0.5:
+            self.hp = max(0, self.hp - 10)
+            return f"{self.name} is confused and hurt itself!"
+
+        MOVE_SOUND.play()
+        move.pp -= 1
+        multiplier = 1.0
+        for t in target.types:
+            multiplier *= TYPE_EFFECTIVENESS.get(move.type, {}).get(t, 1.0)
+        damage = max(1, int((move.power + self.attack_stat - target.defense) * multiplier))
+        target.hp = max(0, target.hp - damage)
+
+        log = f"{self.name} used {move.name}! It dealt {damage} damage."
+        if multiplier > 1:
+            log += " It's super effective!"
+        elif multiplier < 1:
+            log += " It's not very effective."
+
+        if move.name == "Confuse Ray":
+            target.status = "Confused"
+            log += f" {target.name} became confused!"
+
+        if move.name == "Thunder Wave":
+            target.status = "Paralyzed"
+            log += f" {target.name} is paralyzed!"
+
+        if target.hp <= 0:
+            FAINT_SOUND.play()
+            log += f" {target.name} fainted!"
+
+        return log
