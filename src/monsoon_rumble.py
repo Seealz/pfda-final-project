@@ -101,3 +101,16 @@ class Monsoons:
             log += f" {target.name} fainted!"
 
         return log
+    
+    def battle_turn(player, opponent, player_move_index, opponent_move_index, log):
+        first, second = (player, opponent)
+        first_move, second_move = (player_move_index, opponent_move_index)
+
+        if opponent.speed > player.speed:
+            first, second = opponent, player
+            first_move, second_move = opponent_move_index, player_move_index
+
+        log.append(first.attack(first_move, second))
+        if second.hp > 0:
+            log.append(second.attack(second_move, first))
+
