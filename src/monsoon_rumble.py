@@ -1,10 +1,17 @@
 import pygame
 import random
 
+
+
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 FPS = 60
 BG_COLOR = (245, 245, 245)
 WHITE = (255, 255, 255)
+SPRITE_SCALE_FACTOR = 3
+PLAYER_SPRITE_POS = (100, 250)
+OPPONENT_SPRITE_POS = (500, 50)
+
+
 
 class Move:
     def __init__(self, name, type, power, pp):
@@ -13,6 +20,7 @@ class Move:
         self.power = power
         self.max_pp = pp
         self.pp = pp   
+
 
 class Monsoons:
     def __init__(self, name, types, stats, move_names):
@@ -24,14 +32,26 @@ class Monsoons:
         self.defense = stats["defense"]
         self.move_names = move_names
         self.moves = []
+        
         for move_name in move_names:
             original_move = MOVES[move_name]
             new_move = Move(original_move.name, original_move.type, original_move.power, original_move.max_pp)
             self.moves.append(new_move)
+
+        # Load and scale sprites
+        front_sprite = pygame.image.load(f"assets/sprites/{name.lower()}_front.png").convert_alpha()
+        back_sprite = pygame.image.load(f"assets/sprites/{name.lower()}_back.png").convert_alpha()
         
-        # Load sprites
-        self.front_sprite = pygame.image.load(f"assets/sprites/{name.lower()}_front.png").convert_alpha()
-        self.back_sprite = pygame.image.load(f"assets/sprites/{name.lower()}_back.png").convert_alpha()
+        self.front_sprite = pygame.transform.scale(
+            front_sprite, 
+            (front_sprite.get_width() * SPRITE_SCALE_FACTOR, 
+             front_sprite.get_height() * SPRITE_SCALE_FACTOR)
+        )
+        self.back_sprite = pygame.transform.scale(
+            back_sprite,
+            (back_sprite.get_width() * SPRITE_SCALE_FACTOR,
+             back_sprite.get_height() * SPRITE_SCALE_FACTOR)
+        )
 
 
     def attack(self, move_index, target):
@@ -114,11 +134,14 @@ def show_end_screen(screen, message, color):
             elif event.type == pygame.MOUSEBUTTONDOWN and button_rect.collidepoint(event.pos):
                 return
 
+
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Monsoon Rumble")
     clock = pygame.time.Clock()
+
 
     global MOVES
     MOVES = {
@@ -131,6 +154,8 @@ def main():
         "Shock": Move("Shock", "Electric", 45, 25),
         "Quake": Move("Quake", "Earth", 50, 20)
     }
+
+
 
     all_monsoons = [
         Monsoons("Voltail", ["Electric"], {"hp": 100, "attack": 40, "defense": 35}, ["Shock", "Tackle"]),
@@ -149,33 +174,52 @@ def main():
         show_start_screen(screen)
         player = show_select_screen(screen, all_monsoons)
         opponent = random.choice([m for m in all_monsoons if m != player])
+        
+        # Resets stats for new battle
         player.hp = player.max_hp
         opponent.hp = opponent.max_hp
+        for move in player.moves:
+            move.pp = move.max_pp
+        for move in opponent.moves:
+            move.pp = move.max_pp
 
         running_battle = True
         battle_text = "Battle Start!"
         while running_battle:
             screen.fill(BG_COLOR)
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running_battle = False
                     running_global = False
 
-            screen.blit(player.back_sprite, (100, 300))
-            screen.blit(opponent.front_sprite, (500, 100))
-            draw_hp_bar(screen, 100, 270, player.hp, player.max_hp)
-            draw_hp_bar(screen, 500, 70, opponent.hp, opponent.max_hp)
+            screen.blit(player.back_sprite, PLAYER_SPRITE_POS)
+            screen.blit(opponent.front_sprite, OPPONENT_SPRITE_POS)
+            
+            # Draws HP bars
+            draw_hp_bar(screen, PLAYER_SPRITE_POS[0], PLAYER_SPRITE_POS[1] - 30, player.hp, player.max_hp)
+            draw_hp_bar(screen, OPPONENT_SPRITE_POS[0], OPPONENT_SPRITE_POS[1] - 30, opponent.hp, opponent.max_hp)
+            
+            # Draws text box
             draw_text_box(screen, battle_text)
 
+            # Draws move buttons
             font = pygame.font.Font(None, 28)
             move_buttons = []
             for i, move in enumerate(player.moves):
-                label = font.render(f"{move.name} (PP: {move.pp})", True, WHITE)
+                if move.pp <= 0:
+                    text_color = (150, 150, 150)
+                else:
+                    text_color = WHITE
+                label = font.render(f"{move.name} (PP: {move.pp})", True, text_color)
                 rect = label.get_rect(topleft=(SCREEN_WIDTH - 250, 400 + i * 30))
                 screen.blit(label, rect)
-                move_buttons.append((rect, i))
+                if move.pp > 0:
+                    move_buttons.append((rect, i))
 
             pygame.display.flip()
+
+            # Move selection
             selected_move = None
             while selected_move is None:
                 for event in pygame.event.get():
@@ -188,7 +232,8 @@ def main():
                                 selected_move = i
                 clock.tick(FPS)
 
-            _, battle_text = player.attack(selected_move, opponent)
+            # Player attack
+            damage, battle_text = player.attack(selected_move, opponent)
             if opponent.hp <= 0:
                 battle_text += f" {opponent.name} fainted!"
                 pygame.display.flip()
@@ -196,14 +241,19 @@ def main():
                 show_end_screen(screen, "You Win!", (0, 200, 0))
                 break
 
-            opponent_move = random.choice([i for i, m in enumerate(opponent.moves) if m.pp > 0])
-            _, battle_text = opponent.attack(opponent_move, player)
-            if player.hp <= 0:
-                battle_text += f" {player.name} fainted!"
-                pygame.display.flip()
-                pygame.time.wait(1500)
-                show_end_screen(screen, "You Lose!", (200, 0, 0))
-                break
+            # Opponent attack
+            available_moves = [i for i, m in enumerate(opponent.moves) if m.pp > 0]
+            if available_moves:
+                opponent_move = random.choice(available_moves)
+                _, battle_text = opponent.attack(opponent_move, player)
+                if player.hp <= 0:
+                    battle_text += f" {player.name} fainted!"
+                    pygame.display.flip()
+                    pygame.time.wait(1500)
+                    show_end_screen(screen, "You Lose!", (200, 0, 0))
+                    break
+            else:
+                battle_text = f"{opponent.name} has no moves left!"
 
             clock.tick(FPS)
 
