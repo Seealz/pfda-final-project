@@ -74,21 +74,32 @@ class Monsoons:
         if self.status == "Confused" and random.random() < 0.5:
             self.hp = max(0, self.hp - 10)
             return f"{self.name} is confused and hurt itself!"
-        
+
         move.pp -= 1
+
+        # Type effectiveness multiplier
         multiplier = 1.0
         for t in target.types:
             multiplier *= TYPE_EFFECTIVENESS.get(move.type, {}).get(t, 1.0)
 
-        damage = max(1, int((move.power + self.attack_stat - target.defense) * multiplier))
+        # Critical hit check (10% chance)
+        is_critical = random.random() < 0.1
+        crit_multiplier = 1.5 if is_critical else 1.0
+
+        # Final damage calculation
+        damage = max(1, int((move.power + self.attack_stat - target.defense) * multiplier * crit_multiplier))
         target.hp = max(0, target.hp - damage)
 
+        # Construct log
         log = f"{self.name} used {move.name}! It dealt {damage} damage."
+        if is_critical:
+            log += " A critical hit!"
         if multiplier > 1:
             log += " It's super effective!"
         elif multiplier < 1:
             log += " It's not very effective."
 
+        # Apply status if applicable
         if move.name == "Confuse Ray":
             target.status = "Confused"
             log += f" {target.name} became confused!"
@@ -107,14 +118,17 @@ def draw_hp_bar(screen, x, y, display_hp, max_hp):
     pygame.draw.rect(screen, (0, 255, 0), (x, y, int(100 * ratio), 10))
 
 def draw_battle_ui(screen, player, opponent, log, move_buttons):
+    screen_width, screen_height = screen.get_size()
+    screen.fill(WHITE)
+
     screen.blit(player.back_sprite, (PLAYER_SPRITE_POS[0] + player.offset[0], PLAYER_SPRITE_POS[1] + player.offset[1]))
     screen.blit(opponent.front_sprite, (OPPONENT_SPRITE_POS[0] + opponent.offset[0], OPPONENT_SPRITE_POS[1] + opponent.offset[1]))
 
     draw_hp_bar(screen, PLAYER_SPRITE_POS[0], PLAYER_SPRITE_POS[1] - 30, player.display_hp, player.max_hp)
     draw_hp_bar(screen, OPPONENT_SPRITE_POS[0], OPPONENT_SPRITE_POS[1] - 30, opponent.display_hp, opponent.max_hp)
 
-    pygame.draw.rect(screen, MOVE_PANEL_COLOR, (50, 400, 700, 150))
-    pygame.draw.rect(screen, (0, 0, 0), (50, 400, 700, 150), 2)
+    pygame.draw.rect(screen, MOVE_PANEL_COLOR, (50, screen_height - 200, screen_width - 100, 150))
+    pygame.draw.rect(screen, (0, 0, 0), (50, screen_height - 200, screen_width - 100, 150), 2)
 
     font = pygame.font.Font(None, 28)
     for i, (rect, move_idx) in enumerate(move_buttons):
@@ -123,12 +137,12 @@ def draw_battle_ui(screen, player, opponent, log, move_buttons):
         label = font.render(f"{move.name} (PP: {move.pp})", True, text_color)
         screen.blit(label, rect)
 
-    pygame.draw.rect(screen, TEXT_BOX_COLOR, (50, SCREEN_HEIGHT - 150, SCREEN_WIDTH - 100, 130))
-    pygame.draw.rect(screen, (0, 0, 0), (50, SCREEN_HEIGHT - 150, SCREEN_WIDTH - 100, 130), 2)
+    pygame.draw.rect(screen, TEXT_BOX_COLOR, (50, screen_height - 150, screen_width - 100, 130))
+    pygame.draw.rect(screen, (0, 0, 0), (50, screen_height - 150, screen_width - 100, 130), 2)
     font = pygame.font.Font(None, 24)
     for i, line in enumerate(log[-5:]):
         text_surface = font.render(line, True, (0, 0, 0))
-        screen.blit(text_surface, (60, SCREEN_HEIGHT - 140 + i * 24))
+        screen.blit(text_surface, (60, screen_height - 140 + i * 24))
 
 def main():
     pygame.init()
