@@ -24,3 +24,30 @@ TYPE_EFFECTIVENESS["Electric"].update({"Water": 2.0, "Wind": 2.0, "Earth": 0.5})
 TYPE_EFFECTIVENESS["Psychic"].update({"Psychic": 0.5})
 TYPE_EFFECTIVENESS["Earth"].update({"Fire": 2.0, "Electric": 2.0, "Water": 0.5, "Plant": 0.5})
 TYPE_EFFECTIVENESS["Normal"].update({t: 1.0 for t in TYPES})
+
+# Load sounds (placeholders, actual files must exist)
+MOVE_SOUND = pygame.mixer.Sound("assets/sounds/move.wav")
+FAINT_SOUND = pygame.mixer.Sound("assets/sounds/faint.wav")
+
+class Move:
+    def __init__(self, name, type, power, pp):
+        self.name = name
+        self.type = type
+        self.power = power
+        self.max_pp = pp
+        self.pp = pp
+
+class Monsoons:
+    def __init__(self, name, types, stats, move_names):
+        self.name = name
+        self.types = types
+        self.max_hp = stats["hp"]
+        self.hp = stats["hp"]
+        self.attack_stat = stats["attack"]
+        self.defense = stats["defense"]
+        self.speed = stats.get("speed", 50)
+        self.status = None
+        self.moves = []
+        for move_name in move_names:
+            original_move = MOVES[move_name]
+            self.moves.append(Move(original_move.name, original_move.type, original_move.power, original_move.max_pp))
