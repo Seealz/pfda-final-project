@@ -11,7 +11,8 @@ class Move:
         self.name = name
         self.type = type
         self.power = power
-        self.pp = pp
+        self.max_pp = pp
+        self.pp = pp   
 
 class Monsoons:
     def __init__(self, name, types, stats, move_names):
@@ -22,9 +23,13 @@ class Monsoons:
         self.attack_stat = stats["attack"]
         self.defense = stats["defense"]
         self.move_names = move_names
-        self.moves = [MOVES[name] for name in move_names]
+        self.moves = []
+        for move_name in move_names:
+            original_move = MOVES[move_name]
+            new_move = Move(original_move.name, original_move.type, original_move.power, original_move.max_pp)
+            self.moves.append(new_move)
         
-        # This loads sprites
+        # Load sprites
         self.front_sprite = pygame.image.load(f"assets/sprites/{name.lower()}_front.png").convert_alpha()
         self.back_sprite = pygame.image.load(f"assets/sprites/{name.lower()}_back.png").convert_alpha()
 
@@ -37,6 +42,8 @@ class Monsoons:
         damage = max(1, move.power + self.attack_stat - target.defense)
         target.hp = max(0, target.hp - damage)
         return damage, f"{self.name} used {move.name}! It dealt {damage} damage!"
+    
+
 
 def draw_hp_bar(screen, x, y, current_hp, max_hp):
     ratio = current_hp / max_hp
