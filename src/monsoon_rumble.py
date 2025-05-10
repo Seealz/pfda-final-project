@@ -180,9 +180,9 @@ def main():
     }
 
     all_monsoons = [
-        Monsoons("Aquava", ["Water"], {"hp": 100, "attack": 40, "defense": 30}, ["Water Gun", "Tackle"]),
-        Monsoons("Aquava", ["Water"], {"hp": 100, "attack": 40, "defense": 30}, ["Water Gun", "Tackle"]),
-        Monsoons("Aquava", ["Water"], {"hp": 100, "attack": 40, "defense": 30}, ["Water Gun", "Tackle"])
+        Monsoons("Voltail", ["Electric"], {"hp": 100, "attack": 40, "defense": 30}, ["Water Gun", "Tackle"]),
+        Monsoons("Flydo", ["Wind"], {"hp": 100, "attack": 40, "defense": 30}, ["Water Gun", "Tackle"]),
+        Monsoons("Burnrat", ["Fire"], {"hp": 100, "attack": 40, "defense": 30}, ["Ember", "Tackle"])
     ]
 
     show_start_screen(screen)
