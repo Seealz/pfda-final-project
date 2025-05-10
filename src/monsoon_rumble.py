@@ -51,3 +51,14 @@ class Monsoons:
         for move_name in move_names:
             original_move = MOVES[move_name]
             self.moves.append(Move(original_move.name, original_move.type, original_move.power, original_move.max_pp))
+    
+        try:
+            front = pygame.image.load(f"assets/sprites/{name.lower()}_front.png").convert_alpha()
+            back = pygame.image.load(f"assets/sprites/{name.lower()}_back.png").convert_alpha()
+        except:
+            front = pygame.Surface((50, 50)); front.fill((255, 0, 0))
+            back = pygame.Surface((50, 50)); back.fill((0, 0, 255))
+
+        self.front_sprite = pygame.transform.scale(front, (front.get_width() * SPRITE_SCALE_FACTOR, front.get_height() * SPRITE_SCALE_FACTOR))
+        self.back_sprite = pygame.transform.scale(back, (back.get_width() * SPRITE_SCALE_FACTOR, back.get_height() * SPRITE_SCALE_FACTOR))
+        
