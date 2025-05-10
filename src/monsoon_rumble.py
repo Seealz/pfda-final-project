@@ -6,7 +6,7 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 FPS = 60
 BG_COLOR = (245, 245, 245)
 WHITE = (255, 255, 255)
-SPRITE_SCALE_FACTOR = 3
+SPRITE_SCALE_FACTOR = 7
 PLAYER_SPRITE_POS = (100, 250)
 OPPONENT_SPRITE_POS = (500, 50)
 MOVE_PANEL_COLOR = (220, 220, 220)
@@ -168,8 +168,8 @@ def main():
         "Confuse Ray": Move("Confuse Ray", "Psychic", 40, 20),
         "Shock": Move("Shock", "Electric", 45, 25),
         "Quake": Move("Quake", "Earth", 50, 20),
-        "Confuse Ray": Move("Confuse Ray", "Psychic", 3, 25),
-        "Thunder Wave": ("Thunder Wave", "Electric", 1, 25)
+        "Confuse Ray": Move("Confuse Ray", "Psychic", 40, 20),
+        "Thunder Wave": Move("Thunder Wave", "Electric", 0, 25),
     }
 
     all_monsoons = [
@@ -275,7 +275,7 @@ def main():
         screen.fill(BG_COLOR)
         draw_battle_ui(screen, player, opponent, battle_log, [])
         pygame.display.flip()
-        pygame.time.wait(3000)
+        pygame.time.delay(50)
 
     pygame.quit()
 
