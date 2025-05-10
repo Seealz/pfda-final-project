@@ -153,7 +153,7 @@ def main():
         "Shock": Move("Shock", "Electric", 45, 25),
         "Quake": Move("Quake", "Earth", 50, 20),
         "Confuse Ray": Move("Confuse Ray", "Psychic", 3, 25),
-        "Thunder Wave": ("Thunder Wave", "Electric" 1, 25)
+        "Thunder Wave": ("Thunder Wave", "Electric", 1, 25)
     }
 
     all_monsoons = [
