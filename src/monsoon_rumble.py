@@ -21,9 +21,10 @@ TYPE_EFFECTIVENESS["Water"].update({"Fire": 2.0, "Earth": 2.0, "Plant": 0.5, "El
 TYPE_EFFECTIVENESS["Plant"].update({"Water": 2.0, "Earth": 2.0, "Fire": 0.5, "Wind": 0.5})
 TYPE_EFFECTIVENESS["Wind"].update({"Fire": 2.0, "Plant": 2.0, "Earth": 0.5})
 TYPE_EFFECTIVENESS["Electric"].update({"Water": 2.0, "Wind": 2.0, "Earth": 0.5})
-TYPE_EFFECTIVENESS["Psychic"].update({"Normal": 1.0, "Water": 1.0, "Psychic": 0.5})
+TYPE_EFFECTIVENESS["Psychic"].update({"Psychic": 0.5})
 TYPE_EFFECTIVENESS["Earth"].update({"Fire": 2.0, "Electric": 2.0, "Water": 0.5, "Plant": 0.5})
-TYPE_EFFECTIVENESS["Normal"].update({"Fire": 1.0, "Water": 1.0, "Plant": 1.0, "Wind": 1.0, "Electric": 1.0, "Psychic": 1.0, "Earth": 1.0})
+TYPE_EFFECTIVENESS["Normal"].update({t: 1.0 for t in TYPES})
+
 
 class Move:
     def __init__(self, name, move_type, power, pp, sound=None, effect_image=None, is_physical=False):
@@ -35,12 +36,14 @@ class Move:
         self.is_physical = is_physical
         self.sound = None
 
+
 class Monsoons:
     def __init__(self, name, types, stats, move_names):
         self.name = name
         self.types = types
         self.stats = stats
         self.max_hp = stats["hp"]
+        self.hp = self.max_hp
         self.moves = [MOVES[name] for name in move_names]
         self.load_sprites()
 
@@ -48,24 +51,24 @@ class Monsoons:
         try:
             front = pygame.image.load(f"assets/sprites/{self.name.lower()}_front.png").convert_alpha()
             back = pygame.image.load(f"assets/sprites/{self.name.lower()}_back.png").convert_alpha()
-            self.front_sprite = pygame.transform.scale(front, (150, 150))
-            self.back_sprite = pygame.transform.scale(back, (150, 150))
+            self.front_sprite = pygame.transform.scale(front, (250, 250))  # Increased size
+            self.back_sprite = pygame.transform.scale(back, (250, 250))    # Increased size
         except:
             self._create_placeholder_sprites()
 
     def _create_placeholder_sprites(self):
-        placeholder_sprite = pygame.Surface((150, 150), pygame.SRCALPHA)
-        pygame.draw.rect(placeholder_sprite, (255, 0, 255), (0, 0, 150, 150))
+        placeholder_sprite = pygame.Surface((250, 250), pygame.SRCALPHA)
+        pygame.draw.rect(placeholder_sprite, (255, 0, 255), (0, 0, 250, 250))
         self.front_sprite = self.back_sprite = placeholder_sprite
 
     def attack(self, move_index, opponent, screen):
         move = self.moves[move_index]
         if move.pp <= 0:
-            return False, f"{move.name} has no PP left!"
+            return False, f"{self.name} tried to use {move.name}, but there's no PP left!"
         move.pp -= 1
         damage = self._calculate_damage(move, opponent)
         opponent.take_damage(damage)
-        return True, f"{self.name} used {move.name}!"
+        return True, f"{self.name} used {move.name}! It dealt {damage} damage."
 
     def _calculate_damage(self, move, opponent):
         stab = 1.5 if move.type in self.types else 1.0
@@ -74,14 +77,15 @@ class Monsoons:
         return int(base * stab * effectiveness * random.uniform(0.85, 1.0))
 
     def take_damage(self, amount):
-        self.stats["hp"] = max(0, self.stats["hp"] - amount)
-        return self.stats["hp"] <= 0
+        self.hp = max(0, self.hp - amount)
+        return self.hp <= 0
 
 
 def draw_hp_bar(screen, x, y, current_hp, max_hp):
     pygame.draw.rect(screen, RED, (x, y, 200, 20))
     green_width = int((current_hp / max_hp) * 200)
     pygame.draw.rect(screen, GREEN, (x, y, green_width, 20))
+
 
 def draw_text_box(screen, text):
     font = pygame.font.Font(None, 28)
@@ -90,6 +94,7 @@ def draw_text_box(screen, text):
     pygame.draw.rect(screen, WHITE, box, 2)
     rendered_text = font.render(text, True, WHITE)
     screen.blit(rendered_text, (box.x + 10, box.y + 30))
+
 
 def show_start_screen(screen):
     font = pygame.font.Font(None, 60)
@@ -106,9 +111,9 @@ def show_start_screen(screen):
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 return
 
+
 def show_select_screen(screen, all_monsoons):
     font = pygame.font.Font(None, 36)
-    selected = 0
     button_rects = []
     while True:
         screen.fill((30, 30, 30))
@@ -129,6 +134,7 @@ def show_select_screen(screen, all_monsoons):
                     if rect.collidepoint(event.pos):
                         return mon
 
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -137,7 +143,7 @@ def main():
 
     global MOVES
     MOVES = {
-          "Tackle": Move("Tackle", "Normal", 40, 35),
+        "Tackle": Move("Tackle", "Normal", 40, 35),
         "Ember": Move("Ember", "Fire", 50, 25),
         "Water Gun": Move("Water Gun", "Water", 40, 25),
         "Gust": Move("Gust", "Wind", 40, 25),
@@ -159,59 +165,81 @@ def main():
         Monsoons("Cataboo", ["Psychic"], {"hp": 95, "attack": 38, "defense": 32}, ["Confuse Ray", "Tackle"])
     ]
 
-    show_start_screen(screen)
-    player = show_select_screen(screen, all_monsoons)
-    opponent = random.choice([m for m in all_monsoons if m != player])
+    running_global = True
+    while running_global:
+        show_start_screen(screen)
+        player = show_select_screen(screen, all_monsoons)
+        opponent = random.choice([m for m in all_monsoons if m != player])
 
-    running = True
-    battle_text = "Battle Start!"
+        player.hp = player.max_hp
+        opponent.hp = opponent.max_hp
 
-    while running:
-        screen.fill(BG_COLOR)
-        screen.blit(player.back_sprite, (100, 300))
-        screen.blit(opponent.front_sprite, (500, 100))
-
-        draw_hp_bar(screen, 100, 270, player.stats["hp"], player.max_hp)
-        draw_hp_bar(screen, 500, 70, opponent.stats["hp"], opponent.max_hp)
-        draw_text_box(screen, battle_text)
-
-        font = pygame.font.Font(None, 28)
-        move_buttons = []
-        for i, move in enumerate(player.moves):
-            label = font.render(f"{move.name} (PP: {move.pp})", True, WHITE)
-            rect = label.get_rect(topleft=(50, 400 + i * 30))
-            screen.blit(label, rect)
-            move_buttons.append((rect, i))
-
-        pygame.display.flip()
-
-        selected_move = None
-        while selected_move is None:
+        running_battle = True
+        battle_text = "Battle Start!"
+        while running_battle:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    running_battle = False
+                    running_global = False
+
+            if not running_global:
+                break
+
+            screen.fill(BG_COLOR)
+            screen.blit(player.back_sprite, (100, 300))
+            screen.blit(opponent.front_sprite, (500, 100))
+
+            draw_hp_bar(screen, 100, 270, player.hp, player.max_hp)
+            draw_hp_bar(screen, 500, 70, opponent.hp, opponent.max_hp)
+            draw_text_box(screen, battle_text)
+
+            font = pygame.font.Font(None, 28)
+            move_buttons = []
+            for i, move in enumerate(player.moves):
+                label = font.render(f"{move.name} (PP: {move.pp})", True, WHITE)
+                rect = label.get_rect(topleft=(SCREEN_WIDTH - 250, 400 + i * 30))
+                screen.blit(label, rect)
+                move_buttons.append((rect, i))
+
+            pygame.display.flip()
+
+            selected_move = None
+            while selected_move is None:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running_battle = False
+                        running_global = False
+                        break
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        for rect, i in move_buttons:
+                            if rect.collidepoint(event.pos):
+                                selected_move = i
+                if not running_battle:
                     break
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    for rect, i in move_buttons:
-                        if rect.collidepoint(event.pos):
-                            selected_move = i
 
-        success, msg = player.attack(selected_move, opponent, screen)
-        battle_text = msg
-        if opponent.stats["hp"] <= 0:
-            battle_text += f" {opponent.name} fainted!"
-            pygame.time.wait(1500)
-            break
+            if not running_battle or not running_global:
+                break
 
-        opponent_move = random.choice([i for i in range(len(opponent.moves)) if opponent.moves[i].pp > 0])
-        success, msg = opponent.attack(opponent_move, player, screen)
-        battle_text = msg
-        if player.stats["hp"] <= 0:
-            battle_text += f" {player.name} fainted!"
-            pygame.time.wait(1500)
-            break
+            _, msg = player.attack(selected_move, opponent, screen)
+            battle_text = msg
+            if opponent.hp <= 0:
+                battle_text += f" {opponent.name} fainted!"
+                pygame.time.wait(1500)
+                break
 
-        clock.tick(FPS)
+            opponent_move = random.choice([i for i, m in enumerate(opponent.moves) if m.pp > 0])
+            _, msg = opponent.attack(opponent_move, player, screen)
+            battle_text = msg
+            if player.hp <= 0:
+                battle_text += f" {player.name} fainted!"
+                pygame.time.wait(1500)
+                break
+
+            clock.tick(FPS)
+
+    pygame.quit()
+    exit()
+
 
 if __name__ == "__main__":
     main()
