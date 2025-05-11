@@ -1,6 +1,5 @@
 import pygame
 import random
-import time
 
 # Constants
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
@@ -116,13 +115,6 @@ class Monsoons:
 
         return log
 
-def delayed_log_update(screen, log, new_messages, player, opponent, move_buttons, delay=1.5):
-    for message in new_messages:
-        log.append(message)
-        draw_battle_ui(screen, player, opponent, log, move_buttons)
-        pygame.display.flip()
-        time.sleep(delay)
-
 def draw_hp_bar(screen, x, y, display_hp, max_hp):
     ratio = display_hp / max_hp
     pygame.draw.rect(screen, (0, 0, 0), (x, y, 100, 10), 1)
@@ -165,11 +157,13 @@ def get_next_alive(party, current=None):
         if monsoon.hp > 0 and monsoon != current:
             return monsoon
     return None
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     pygame.display.set_caption("Monsoon Rumble")
-    clock = pygame.time.Clock() 
+    clock = pygame.time.Clock()
+    
 
     global MOVES
     MOVES = {
@@ -209,7 +203,7 @@ def main():
         player = random.choice(all_monsoons)
         opponent = random.choice([m for m in all_monsoons if m != player])
         
-        # Resets battle state
+        # Reset battle state
         player.hp = player.max_hp
         opponent.hp = opponent.max_hp
         for move in player.moves + opponent.moves:
@@ -221,7 +215,7 @@ def main():
         while player.hp > 0 and opponent.hp > 0:
             screen.fill(BG_COLOR)
             
-            # Generates move buttons
+            # Generate move buttons
             move_buttons = []
             font = pygame.font.Font(None, 28)
             for i, move in enumerate(player.moves):
@@ -230,7 +224,7 @@ def main():
                 rect = pygame.Rect(x, y, 300, 30)
                 move_buttons.append((rect, i))
             
-            # Draws UI
+            # Draw UI
             draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
             pygame.display.flip()
             
@@ -247,7 +241,7 @@ def main():
                         for rect, move_idx in move_buttons:
                             if rect.collidepoint(event.pos) and player.moves[move_idx].pp > 0:
                                 selected_move = move_idx
-                for _ in range(15):  # Adjust for speed/smoothness
+                for _ in range(15):
                     if player.display_hp > player.hp:
                         player.display_hp -= max(1, (player.display_hp - player.hp) // 4)
                     if player.display_hp < player.hp:
