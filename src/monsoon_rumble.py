@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 
 # Constants
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
@@ -75,6 +76,7 @@ class Monsoons:
             return f"{self.name} is confused and hurt itself!"
 
         move.pp -= 1
+
         multiplier = 1.0
         for t in target.types:
             multiplier *= TYPE_EFFECTIVENESS.get(move.type, {}).get(t, 1.0)
@@ -113,6 +115,13 @@ class Monsoons:
             log += f" {self.name} is no longer affected by any status!"
 
         return log
+
+def delayed_log_update(screen, log, new_messages, player, opponent, move_buttons, delay=1.5):
+    for message in new_messages:
+        log.append(message)
+        draw_battle_ui(screen, player, opponent, log, move_buttons)
+        pygame.display.flip()
+        time.sleep(delay)
 
 def draw_hp_bar(screen, x, y, display_hp, max_hp):
     ratio = display_hp / max_hp
@@ -156,13 +165,11 @@ def get_next_alive(party, current=None):
         if monsoon.hp > 0 and monsoon != current:
             return monsoon
     return None
-
 def main():
     pygame.init()
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     pygame.display.set_caption("Monsoon Rumble")
-    clock = pygame.time.Clock()
-    
+    clock = pygame.time.Clock() 
 
     global MOVES
     MOVES = {
@@ -202,7 +209,7 @@ def main():
         player = random.choice(all_monsoons)
         opponent = random.choice([m for m in all_monsoons if m != player])
         
-        # Reset battle state
+        # Resets battle state
         player.hp = player.max_hp
         opponent.hp = opponent.max_hp
         for move in player.moves + opponent.moves:
@@ -214,7 +221,7 @@ def main():
         while player.hp > 0 and opponent.hp > 0:
             screen.fill(BG_COLOR)
             
-            # Generate move buttons
+            # Generates move buttons
             move_buttons = []
             font = pygame.font.Font(None, 28)
             for i, move in enumerate(player.moves):
@@ -223,7 +230,7 @@ def main():
                 rect = pygame.Rect(x, y, 300, 30)
                 move_buttons.append((rect, i))
             
-            # Draw UI
+            # Draws UI
             draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
             pygame.display.flip()
             
