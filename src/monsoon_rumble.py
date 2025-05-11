@@ -46,7 +46,6 @@ class Monsoons:
         self.moves = []
         self.offset = [0, 0]
 
-        
         for move_name in move_names:
             original_move = MOVES[move_name]
             self.moves.append(Move(original_move.name, original_move.type, original_move.power, original_move.max_pp))
@@ -59,7 +58,7 @@ class Monsoons:
             front.fill((255, 0, 0))
             back = pygame.Surface((50, 50))
             back.fill((0, 0, 255))
-        
+
         self.front_sprite = pygame.transform.scale(front, (front.get_width() * SPRITE_SCALE_FACTOR, front.get_height() * SPRITE_SCALE_FACTOR))
         self.back_sprite = pygame.transform.scale(back, (back.get_width() * SPRITE_SCALE_FACTOR, back.get_height() * SPRITE_SCALE_FACTOR))
 
@@ -76,21 +75,16 @@ class Monsoons:
             return f"{self.name} is confused and hurt itself!"
 
         move.pp -= 1
-
-        # Type effectiveness multiplier
         multiplier = 1.0
         for t in target.types:
             multiplier *= TYPE_EFFECTIVENESS.get(move.type, {}).get(t, 1.0)
 
-        # Critical hit check (10% chance)
         is_critical = random.random() < 0.1
         crit_multiplier = 1.5 if is_critical else 1.0
 
-        # Final damage calculation
         damage = max(1, int((move.power + self.attack_stat - target.defense) * multiplier * crit_multiplier))
         target.hp = max(0, target.hp - damage)
 
-        # Construct log
         log = f"{self.name} used {move.name}! It dealt {damage} damage."
         if is_critical:
             log += " A critical hit!"
@@ -99,7 +93,6 @@ class Monsoons:
         elif multiplier < 1:
             log += " It's not very effective."
 
-        # Apply status if applicable
         if move.name == "Confuse Ray":
             target.status = "Confused"
             log += f" {target.name} became confused!"
@@ -114,7 +107,7 @@ class Monsoons:
             heal = min(-move.power, self.max_hp - self.hp)
             self.hp += heal
             return f"{self.name} used {move.name}! It recovered {heal} HP."
-        
+
         if move.name == "Heal Pulse":
             self.status = None
             log += f" {self.name} is no longer affected by any status!"
@@ -138,10 +131,8 @@ def draw_battle_ui(screen, player, opponent, log, move_buttons):
     screen.blit(player.back_sprite, (player_x, player_y))
     screen.blit(opponent.front_sprite, (opponent_x, opponent_y))
 
-
     draw_hp_bar(screen, player_x, player_y - 30, player.display_hp, player.max_hp)
     draw_hp_bar(screen, opponent_x, opponent_y - 30, opponent.display_hp, opponent.max_hp)
-
 
     pygame.draw.rect(screen, MOVE_PANEL_COLOR, (50, screen_height - 200, screen_width - 100, 150))
     pygame.draw.rect(screen, (0, 0, 0), (50, screen_height - 200, screen_width - 100, 150), 2)
@@ -159,6 +150,12 @@ def draw_battle_ui(screen, player, opponent, log, move_buttons):
     for i, line in enumerate(log[-5:]):
         text_surface = font.render(line, True, (0, 0, 0))
         screen.blit(text_surface, (60, screen_height - 140 + i * 24))
+
+def get_next_alive(party, current=None):
+    for monsoon in party:
+        if monsoon.hp > 0 and monsoon != current:
+            return monsoon
+    return None
 
 def main():
     pygame.init()
@@ -197,6 +194,8 @@ def main():
         Monsoons("Baitinphish", ["Water"], {"hp": 365, "attack": 22, "defense": 55, "speed": 50}, ["Water Gun", "Tackle", "Recover"]),
         Monsoons("Cataboo", ["Psychic"], {"hp": 200, "attack": 38, "defense": 32, "speed": 100}, ["Confuse Ray", "Gust", "Heal Pulse"])
     ]
+
+        
 
     running = True
     while running:
