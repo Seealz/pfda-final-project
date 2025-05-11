@@ -110,6 +110,15 @@ class Monsoons:
         if target.hp <= 0:
             log += f" {target.name} fainted!"
 
+        if move.power < 0:
+            heal = min(-move.power, self.max_hp - self.hp)
+            self.hp += heal
+            return f"{self.name} used {move.name}! It recovered {heal} HP."
+        
+        if move.name == "Heal Pulse":
+            self.status = None
+            log += f" {self.name} is no longer affected by any status!"
+
         return log
 
 def draw_hp_bar(screen, x, y, display_hp, max_hp):
@@ -172,16 +181,21 @@ def main():
         "Thunder Wave": Move("Thunder Wave", "Electric", 0, 25),
     }
 
+    MOVES.update({
+    "Recover": Move("Recover", "Normal", -40, 5),  # Heals 40 HP
+    "Heal Pulse": Move("Heal Pulse", "Psychic", -30, 5),  # Cures status + heals
+})
+
     all_monsoons = [
-        Monsoons("Voltail", ["Electric"], {"hp": 160, "attack": 30, "defense": 35, "speed": 200}, ["Shock", "Tackle"]),
-        Monsoons("Burnrat", ["Fire"], {"hp": 158, "attack": 25, "defense": 25, "speed": 120}, ["Ember", "Tackle"]),
-        Monsoons("Thyladon", ["Plant"], {"hp": 110, "attack": 45, "defense": 40, "speed": 156}, ["Vine Whip", "Tackle"]),
-        Monsoons("Pseye", ["Psychic"], {"hp": 144, "attack": 45, "defense": 30, "speed": 94}, ["Confuse Ray", "Tackle"]),
-        Monsoons("Flydo", ["Wind"], {"hp": 166, "attack": 30, "defense": 25, "speed": 177}, ["Gust", "Tackle"]),
-        Monsoons("Drillizard", ["Earth"], {"hp": 123, "attack": 50, "defense": 65, "speed": 133}, ["Quake", "Tackle"]),
-        Monsoons("Clawdon", ["Normal"], {"hp": 235, "attack": 45, "defense": 40, "speed": 150}, ["Tackle", "Ember"]),
-        Monsoons("Baitinphish", ["Water"], {"hp": 365, "attack": 22, "defense": 55, "speed": 50}, ["Water Gun", "Tackle"]),
-        Monsoons("Cataboo", ["Psychic"], {"hp": 200, "attack": 38, "defense": 32, "speed": 100}, ["Confuse Ray", "Gust"])
+        Monsoons("Voltail", ["Electric"], {"hp": 160, "attack": 30, "defense": 35, "speed": 200}, ["Shock", "Tackle", "Recover"]),
+        Monsoons("Burnrat", ["Fire"], {"hp": 158, "attack": 25, "defense": 25, "speed": 120}, ["Ember", "Tackle", "Recover"]),
+        Monsoons("Thyladon", ["Plant"], {"hp": 110, "attack": 45, "defense": 40, "speed": 156}, ["Vine Whip", "Tackle", "Recover"]),
+        Monsoons("Pseye", ["Psychic"], {"hp": 144, "attack": 45, "defense": 30, "speed": 94}, ["Confuse Ray", "Tackle", "Heal Pulse"]),
+        Monsoons("Flydo", ["Wind"], {"hp": 166, "attack": 30, "defense": 25, "speed": 177}, ["Gust", "Tackle", "Recover"]),
+        Monsoons("Drillizard", ["Earth"], {"hp": 123, "attack": 50, "defense": 65, "speed": 133}, ["Quake", "Tackle", "Heal Pulse"]),
+        Monsoons("Clawdon", ["Normal"], {"hp": 235, "attack": 45, "defense": 40, "speed": 150}, ["Tackle", "Ember", "Recover"]),
+        Monsoons("Baitinphish", ["Water"], {"hp": 365, "attack": 22, "defense": 55, "speed": 50}, ["Water Gun", "Tackle", "Recover"]),
+        Monsoons("Cataboo", ["Psychic"], {"hp": 200, "attack": 38, "defense": 32, "speed": 100}, ["Confuse Ray", "Gust", "Heal Pulse"])
     ]
 
     running = True
