@@ -7,8 +7,6 @@ FPS = 60
 BG_COLOR = (245, 245, 245)
 WHITE = (255, 255, 255)
 SPRITE_SCALE_FACTOR = 7
-PLAYER_SPRITE_POS = (100, 250)
-OPPONENT_SPRITE_POS = (500, 50)
 MOVE_PANEL_COLOR = (220, 220, 220)
 TEXT_BOX_COLOR = (240, 240, 240)
 
@@ -22,7 +20,6 @@ TYPE_EFFECTIVENESS["Wind"].update({"Fire": 2.0, "Plant": 2.0, "Earth": 0.5})
 TYPE_EFFECTIVENESS["Electric"].update({"Water": 2.0, "Wind": 2.0, "Earth": 0.5})
 TYPE_EFFECTIVENESS["Psychic"].update({"Psychic": 0.5})
 TYPE_EFFECTIVENESS["Earth"].update({"Fire": 2.0, "Electric": 2.0, "Water": 0.5, "Plant": 0.5})
-TYPE_EFFECTIVENESS["Normal"].update({t: 1.0 for t in TYPES})
 
 class Move:
     def __init__(self, name, type, power, pp):
@@ -38,7 +35,7 @@ class Monsoons:
         self.types = types
         self.max_hp = stats["hp"]
         self.hp = stats["hp"]
-        self.display_hp = self.hp  # HP bar animation
+        self.display_hp = self.hp
         self.attack_stat = stats["attack"]
         self.defense = stats["defense"]
         self.speed = stats.get("speed", 50)
@@ -66,16 +63,13 @@ class Monsoons:
         move = self.moves[move_index]
         if move.pp <= 0:
             return f"{self.name} tried to use {move.name} but it's out of PP!"
-
         if self.status == "Paralyzed" and random.random() < 0.25:
             return f"{self.name} is paralyzed and couldn't move!"
-
         if self.status == "Confused" and random.random() < 0.5:
             self.hp = max(0, self.hp - 10)
             return f"{self.name} is confused and hurt itself!"
 
         move.pp -= 1
-
         multiplier = 1.0
         for t in target.types:
             multiplier *= TYPE_EFFECTIVENESS.get(move.type, {}).get(t, 1.0)
@@ -114,7 +108,7 @@ class Monsoons:
             log += f" {self.name} is no longer affected by any status!"
 
         return log
-    
+
 def draw_status(screen, monsoon, x, y):
     if monsoon.status:
         font = pygame.font.Font(None, 22)
@@ -129,9 +123,6 @@ def draw_hp_bar(screen, x, y, display_hp, max_hp):
 def draw_battle_ui(screen, player, opponent, log, move_buttons):
     screen_width, screen_height = screen.get_size()
     screen.fill(WHITE)
-    
-    draw_status(screen, player, player_x, player_y)
-    draw_status(screen, opponent, opponent_x, opponent_y)
 
     player_x = screen_width // 4 - player.back_sprite.get_width() // 2 + player.offset[0]
     player_y = screen_height // 2 + 100 + player.offset[1]
@@ -144,7 +135,10 @@ def draw_battle_ui(screen, player, opponent, log, move_buttons):
     draw_hp_bar(screen, player_x, player_y - 30, player.display_hp, player.max_hp)
     draw_hp_bar(screen, opponent_x, opponent_y - 30, opponent.display_hp, opponent.max_hp)
 
-    pygame.draw.rect(screen, MOVE_PANEL_COLOR, (50, screen_height - 200, screen_width - 100, 150))
+    draw_status(screen, player, player_x, player_y)
+    draw_status(screen, opponent, opponent_x, opponent_y)
+
+    pygame.draw.rect(screen, MOVE_PANEL_COLOR, (50, screen_height - 200, screen_width - 100, 150), border_radius=8)
     pygame.draw.rect(screen, (0, 0, 0), (50, screen_height - 200, screen_width - 100, 150), 2)
 
     font = pygame.font.Font(None, 28)
@@ -156,16 +150,34 @@ def draw_battle_ui(screen, player, opponent, log, move_buttons):
 
     pygame.draw.rect(screen, TEXT_BOX_COLOR, (50, screen_height - 150, screen_width - 100, 130))
     pygame.draw.rect(screen, (0, 0, 0), (50, screen_height - 150, screen_width - 100, 130), 2)
+
     font = pygame.font.Font(None, 24)
     for i, line in enumerate(log[-5:]):
         text_surface = font.render(line, True, (0, 0, 0))
         screen.blit(text_surface, (60, screen_height - 140 + i * 24))
 
-def get_next_alive(party, current=None):
-    for monsoon in party:
-        if monsoon.hp > 0 and monsoon != current:
-            return monsoon
-    return None
+def show_main_menu(screen):
+    screen.fill(BG_COLOR)
+    font = pygame.font.Font(None, 48)
+    title = font.render("Monsoon Rumble", True, (0, 0, 0))
+    prompt = pygame.font.Font(None, 32).render("Press Enter to Start or Q to Quit", True, (0, 0, 0))
+
+    screen.blit(title, (screen.get_width() // 2 - title.get_width() // 2, 200))
+    screen.blit(prompt, (screen.get_width() // 2 - prompt.get_width() // 2, 300))
+    pygame.display.flip()
+
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    waiting = False
+                elif event.key == pygame.K_q:
+                    pygame.quit()
+                    exit()
 
 def main():
     pygame.init()
@@ -293,13 +305,30 @@ def main():
         else:
             battle_log.append("You won the battle!")
         
-        # Show final state
-        screen.fill(BG_COLOR)
-        draw_battle_ui(screen, player, opponent, battle_log, [])
-        pygame.display.flip()
-        pygame.time.delay(50)
+            show_main_menu(screen)
 
-    pygame.quit()
+        def show_main_menu(screen):
+            screen.fill(BG_COLOR)
+            font = pygame.font.Font(None, 48)
+            title = font.render("Monsoon Rumble", True, (0, 0, 0))
+            prompt = pygame.font.Font(None, 32).render("Press Enter to Start or Q to Quit", True, (0, 0, 0))
 
-if __name__ == "__main__":
-    main()
+            screen.blit(title, (screen.get_width() // 2 - title.get_width() // 2, 200))
+            screen.blit(prompt, (screen.get_width() // 2 - prompt.get_width() // 2, 300))
+            pygame.display.flip()
+
+            waiting = True
+            while waiting:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        exit()
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_RETURN:
+                            waiting = False
+                        elif event.key == pygame.K_q:
+                            pygame.quit()
+                            exit()
+
+        if __name__ == "__main__":
+            main()
