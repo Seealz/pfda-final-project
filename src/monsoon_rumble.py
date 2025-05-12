@@ -249,11 +249,15 @@ def draw_battle_ui(screen, player, opponent, battle_log, move_buttons):
     font = pygame.font.SysFont(None, 28)
     for rect, idx in move_buttons:
         move = player.moves[idx]
-        color = TYPE_COLORS.get(move.type, (200, 200, 200))
+        if player.hp > 0:
+            color = TYPE_COLORS.get(move.type, (200, 200, 200))
+        else:
+            color = (180, 180, 180)
         pygame.draw.rect(screen, color, rect)
         move_text = f"{move.name} ({move.pp}/{move.max_pp})"
         text = font.render(move_text, True, (0, 0, 0))
         screen.blit(text, (rect.x + 10, rect.y + 5))
+
 
 def draw_health_bar(screen, mon, x, y):
     bar_width = 200
@@ -368,12 +372,12 @@ def main():
 
             if player.speed >= opponent.speed:
                 battle_log.append(player.attack(selected_move, opponent))
-                pygame.time.wait(1000)
+                pygame.time.wait(2500)
                 if opponent.hp > 0:
                     battle_log.append(opponent.attack(opponent_move, player))
             else:
                 battle_log.append(opponent.attack(opponent_move, player))
-                pygame.time.wait(1000)
+                pygame.time.wait(2500)
                 if player.hp > 0:
                     battle_log.append(player.attack(selected_move, opponent))
 
