@@ -107,13 +107,19 @@ class Monsoons:
         if move.power < 0:
             heal = min(-move.power, self.max_hp - self.hp)
             self.hp += heal
-            return f"{self.name} used {move.name}! It recovered {heal} HP."
+            log += f" {self.name} used {move.name}! It recovered {heal} HP."
 
         if move.name == "Heal Pulse":
             self.status = None
             log += f" {self.name} is no longer affected by any status!"
 
         return log
+    
+def draw_status(screen, monsoon, x, y):
+    if monsoon.status:
+        font = pygame.font.Font(None, 22)
+        text = font.render(monsoon.status, True, (255, 0, 0))
+        screen.blit(text, (x, y - 20))
 
 def draw_hp_bar(screen, x, y, display_hp, max_hp):
     ratio = display_hp / max_hp
@@ -123,6 +129,9 @@ def draw_hp_bar(screen, x, y, display_hp, max_hp):
 def draw_battle_ui(screen, player, opponent, log, move_buttons):
     screen_width, screen_height = screen.get_size()
     screen.fill(WHITE)
+    
+    draw_status(screen, player, player_x, player_y)
+    draw_status(screen, opponent, opponent_x, opponent_y)
 
     player_x = screen_width // 4 - player.back_sprite.get_width() // 2 + player.offset[0]
     player_y = screen_height // 2 + 100 + player.offset[1]
