@@ -144,21 +144,34 @@ class Monsoons:
         damage = max(1, int((move.power + self.attack_stat - target.defense) * multiplier * crit_multiplier))
 
         # Plays move-specific sound
-        if move.name in sounds:
-            sounds[move.name].play()
 
-        self.play_cry()
+        sound_to_play = move.name if move.name in sounds else None
+        cry_to_play = self.name if self.name in cries else None
+        faint_sound = "faint" if target.hp <= 0 and "faint" in sounds else None
 
+        log = self.use_move(move, target, damage, is_critical, multiplier, sounds)
+        return log, sound_to_play, cry_to_play, faint_sound
+   
+
+    class Monsoon:
+        def __init__(self, name, hp, max_hp):
+            self.name = name
+            self.hp = hp
+            self.max_hp = max_hp
+            self.statuses = []
+
+    def use_move(self, move, target, damage, is_critical, multiplier, sounds):
         log = f"{self.name} used {move.name}!"
+
         if move.power > 0:
             target.hp = max(0, target.hp - damage)
             log += f" It dealt {damage} damage."
-        if is_critical:
-            log += " A critical hit!"
-        if multiplier > 1:
-            log += " It's super effective!"
-        elif multiplier < 1:
-            log += " It's not very effective."
+            if is_critical:
+                log += " A critical hit!"
+            if multiplier > 1:
+                log += " It's super effective!"
+            elif multiplier < 1:
+                log += " It's not very effective."
 
         if move.name == "Confuse Ray" and "Confused" not in target.statuses:
             target.statuses.append("Confused")
@@ -182,7 +195,6 @@ class Monsoons:
             log += f" {self.name} is no longer affected by any status!"
 
         return log
-
     
 def show_main_menu(screen):
     font_title = pygame.font.SysFont("arial", 64, bold=True)
@@ -373,33 +385,63 @@ def main():
                 return best_index
 
             if player.speed >= opponent.speed:
-                battle_log.append(player.attack(selected_move, opponent))
-                pygame.time.wait(2500)
+                log, sound_name, cry_name, faint_sound = player.attack(selected_move, opponent)
+                battle_log.append(log)
+                if sound_name: sounds[sound_name].play()
+                if cry_name: cries[cry_name].play()
+                pygame.time.wait(100)
                 if opponent.hp > 0:
-                    battle_log.append(opponent.attack(opponent_move, player))
-                    pygame.time.wait(2500)
+                    log, sound_name, cry_name, faint_sound = opponent.attack(opponent_move, player)
+                    battle_log.append(log)
+                    if sound_name: sounds[sound_name].play()
+                    if cry_name: cries[cry_name].play()
             else:
-                battle_log.append(opponent.attack(opponent_move, player))
-                pygame.time.wait(2500)
+                log, sound_name, cry_name, faint_sound = opponent.attack(opponent_move, player)
+                battle_log.append(log)
+                if sound_name: sounds[sound_name].play()
+                if cry_name: cries[cry_name].play()
+                pygame.time.wait(100)
                 if player.hp > 0:
-                    battle_log.append(player.attack(selected_move, opponent))
-                    pygame.time.wait(2500)
+                    log, sound_name, cry_name, faint_sound = player.attack(selected_move, opponent)
+                    battle_log.append(log)
+                    if sound_name: sounds[sound_name].play()
+                    if cry_name: cries[cry_name].play()
 
-        # This animates fainting
-        while player.offset[1] < SCREEN_HEIGHT and opponent.offset[1] < SCREEN_HEIGHT:
-            if player.hp <= 0 and player.offset[1] < SCREEN_HEIGHT:
-                player.offset[1] += 5
-            if opponent.hp <= 0 and opponent.offset[1] < SCREEN_HEIGHT:
-                opponent.offset[1] += 5
-            draw_battle_ui(screen, player, opponent, battle_log, [])
-            pygame.display.flip()
-            clock.tick(FPS)
 
-        battle_log.append("You won!" if opponent.hp <= 0 else "You lost!")
-        draw_battle_ui(screen, player, opponent, battle_log, [])
+        # Update HP bars after opponent's attack
+        for mon in (player, opponent):
+            if mon.hp <= 0:
+                mon.display_hp = 0
+            elif mon.display_hp > mon.hp:
+                mon.display_hp -= max(1, (mon.display_hp - mon.hp) // 4)
+            elif mon.display_hp < mon.hp:
+                mon.display_hp += max(1, (mon.hp - mon.display_hp) // 4)
+
+        draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
         pygame.display.flip()
-        pygame.time.wait(2000)
-        show_main_menu(screen)
+        pygame.time.wait(2500)
+
+    # Display win/loss message
+    font = pygame.font.SysFont(None, 48)
+    result_text = "You Win!" if player.hp > 0 else "You Lose!"
+    result_surface = font.render(result_text, True, (255, 0, 0))
+    result_rect = result_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+    screen.blit(result_surface, result_rect)
+    pygame.display.flip()
+    pygame.time.wait(3000)
+
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                waiting = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    waiting = False
+                elif event.key == pygame.K_ESCAPE:
+                    running = False
+                    waiting = False
 
 if __name__ == "__main__":
     main()
