@@ -173,6 +173,90 @@ class Monsoons:
         return log
 
     
+def show_main_menu(screen):
+    font_title = pygame.font.SysFont("arial", 64, bold=True)
+    font_button = pygame.font.SysFont("arial", 36)
+    
+    title_text = font_title.render("Monsoon Rumble", True, (50, 50, 150))
+    title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, 150))
+    
+    button_rect = pygame.Rect(SCREEN_WIDTH // 2 - 150, 300, 300, 60)
+    
+    waiting = True
+    while waiting:
+        screen.fill((30, 30, 30))  # Background color (dark gray)
+
+        # Draw title
+        screen.blit(title_text, title_rect)
+
+        # Draw button (hover effect)
+        mouse_pos = pygame.mouse.get_pos()
+        if button_rect.collidepoint(mouse_pos):
+            pygame.draw.rect(screen, (70, 130, 180), button_rect)  # hover
+        else:
+            pygame.draw.rect(screen, (100, 100, 200), button_rect)
+
+        # Draw button text
+        button_text = font_button.render("Start Battle", True, (255, 255, 255))
+        button_text_rect = button_text.get_rect(center=button_rect.center)
+        screen.blit(button_text, button_text_rect)
+
+        # Event loop
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if button_rect.collidepoint(event.pos):
+                    waiting = False
+
+        pygame.display.flip()
+        pygame.time.Clock().tick(60)
+
+def draw_battle_ui(screen, player, opponent, battle_log, move_buttons):
+    screen.fill(BG_COLOR)
+
+    # Opponent sprite
+    screen.blit(opponent.front_sprite, (500 + opponent.offset[0], 80 + opponent.offset[1]))
+    draw_health_bar(screen, opponent, 500, 60)
+
+    # Player sprite
+    screen.blit(player.back_sprite, (100 + player.offset[0], 250 + player.offset[1]))
+    draw_health_bar(screen, player, 100, 230)
+
+    # Draw text box
+    pygame.draw.rect(screen, TEXT_BOX_COLOR, (50, 350, 700, 60))
+    font = pygame.font.SysFont(None, 24)
+    if battle_log:
+        lines = battle_log[-2:]  # Show the last 2 log messages
+        for i, line in enumerate(lines):
+            text = font.render(line, True, (0, 0, 0))
+            screen.blit(text, (60, 355 + i * 20))
+
+    # Draw move panel
+    pygame.draw.rect(screen, MOVE_PANEL_COLOR, (50, 410, 700, 140))
+    font = pygame.font.SysFont(None, 28)
+    for rect, idx in move_buttons:
+        move = player.moves[idx]
+        color = TYPE_COLORS.get(move.type, (200, 200, 200))
+        pygame.draw.rect(screen, color, rect)
+        move_text = f"{move.name} ({move.pp}/{move.max_pp})"
+        text = font.render(move_text, True, (0, 0, 0))
+        screen.blit(text, (rect.x + 10, rect.y + 5))
+
+def draw_health_bar(screen, mon, x, y):
+    bar_width = 200
+    bar_height = 20
+    health_ratio = mon.display_hp / mon.max_hp
+    pygame.draw.rect(screen, (0, 0, 0), (x, y, bar_width, bar_height), 2)  # Border
+    pygame.draw.rect(screen, (200, 0, 0), (x, y, int(bar_width * health_ratio), bar_height))  # HP
+
+    # Draw HP text
+    font = pygame.font.SysFont(None, 20)
+    hp_text = f"{mon.hp}/{mon.max_hp}"
+    text = font.render(hp_text, True, (0, 0, 0))
+    screen.blit(text, (x + 70, y + 2))
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
