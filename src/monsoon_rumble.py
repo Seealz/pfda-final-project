@@ -149,13 +149,6 @@ class Monsoons:
 
         self.play_cry()
 
-
-
-        if move.name in ("Tackle", "Vine Whip") and hasattr(self, 'animation_context'):
-            screen, player, opponent, battle_log, move_buttons = self.animation_context
-            perform_slide_attack_animation(screen, self, target, self == player, battle_log, move_buttons)
-
-
         log = f"{self.name} used {move.name}!"
         if move.power > 0:
             target.hp = max(0, target.hp - damage)
@@ -259,7 +252,7 @@ def draw_battle_ui(screen, player, opponent, battle_log, move_buttons):
         if player.hp > 0:
             color = TYPE_COLORS.get(move.type, (200, 200, 200))
         else:
-            color = (180, 180, 180)
+            color = (180, 180, 180)  # Gray out buttons when fainted
         pygame.draw.rect(screen, color, rect)
         move_text = f"{move.name} ({move.pp}/{move.max_pp})"
         text = font.render(move_text, True, (0, 0, 0))
@@ -272,28 +265,6 @@ def draw_health_bar(screen, mon, x, y):
     health_ratio = mon.display_hp / mon.max_hp
     pygame.draw.rect(screen, (0, 0, 0), (x, y, bar_width, bar_height), 2) 
     pygame.draw.rect(screen, (200, 0, 0), (x, y, int(bar_width * health_ratio), bar_height))
-
-    def perform_slide_attack_animation(screen, attacker, target, is_player, battle_log, move_buttons):
-        original_offset = attacker.offset[:]
-        direction = 1 if is_player else -1
-        speed = 20 
-
-
-        #This is the slide forward part
-        for _ in range(10):
-            attacker.offset[0] += direction * speed
-            draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
-            pygame.display.flip()
-            pygame.time.wait(20)
-
-        #This is the slide back part
-        for _ in range(10):
-            attacker.offset[0] -= direction * speed
-            draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
-            pygame.display.flip()
-            pygame.time.wait(20)
-
-        attacker.offset = original_offset[:]
 
     # Draw HP text
     font = pygame.font.SysFont(None, 20)
@@ -400,19 +371,15 @@ def main():
                 return best_index
 
             if player.speed >= opponent.speed:
-                battle_log.append(animate_and_attack(player, opponent, selected_move))
+                battle_log.append(player.attack(selected_move, opponent))
                 pygame.time.wait(2500)
                 if opponent.hp > 0:
-                    battle_log.append(animate_and_attack(opponent, player, opponent_move))
+                    battle_log.append(opponent.attack(opponent_move, player))
             else:
-                battle_log.append(animate_and_attack(opponent, player, opponent_move))
+                battle_log.append(opponent.attack(opponent_move, player))
                 pygame.time.wait(2500)
                 if player.hp > 0:
-                    battle_log.append(animate_and_attack(player, opponent, selected_move))
-
-            def animate_and_attack(attacker, defender, move_index):
-                move = attacker.moves[move_index]
-                is_tackle_like = move.name in ("Tackle", "Vine Whip")
+                    battle_log.append(player.attack(selected_move, opponent))
 
         # This animates fainting
         while player.offset[1] < SCREEN_HEIGHT and opponent.offset[1] < SCREEN_HEIGHT:
