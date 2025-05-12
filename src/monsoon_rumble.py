@@ -267,6 +267,22 @@ def draw_health_bar(screen, mon, x, y):
     text = font.render(hp_text, True, (0, 0, 0))
     screen.blit(text, (x + 70, y + 2))
 
+def animate_hp_change(screen, player, opponent, battle_log, move_buttons, old_hp, new_hp, is_player=True):
+    steps = 20
+    delay = 100  # milliseconds
+    delta = (old_hp - new_hp) / steps
+
+    for i in range(steps):
+        if is_player:
+            player.hp = max(new_hp, int(old_hp - delta * (i + 1)))
+        else:
+            opponent.hp = max(new_hp, int(old_hp - delta * (i + 1)))
+
+        draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
+        pygame.display.flip()
+        pygame.time.wait(delay)
+
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -317,33 +333,52 @@ def main():
 
         while player.hp > 0 and opponent.hp > 0:
             move_buttons = []
-            for i, move in enumerate(player.moves):
-                x = 70 + (i % 2) * 350
-                y = 420 + (i // 2) * 40
-                move_buttons.append((pygame.Rect(x, y, 300, 30), i))
+    for i, move in enumerate(player.moves):
+        x = 70 + (i % 2) * 350
+        y = 420 + (i // 2) * 40
+        move_buttons.append((pygame.Rect(x, y, 300, 30), i))
 
-            selected_move = None
-            while selected_move is None:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        running = False
-                        pygame.quit()
-                        return
-                    if event.type == pygame.MOUSEBUTTONDOWN:
-                        for rect, idx in move_buttons:
-                            if rect.collidepoint(event.pos) and player.moves[idx].pp > 0:
-                                selected_move = idx
+    selected_move = None
+    while selected_move is None:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                pygame.quit()
+                return
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                for rect, idx in move_buttons:
+                    if rect.collidepoint(event.pos) and player.moves[idx].pp > 0:
+                        selected_move = idx
 
-                # This animates the HP bar
-                for _ in range(5):
-                    for mon in (player, opponent):
-                        if mon.display_hp > mon.hp:
-                            mon.display_hp -= max(1, (mon.display_hp - mon.hp) // 4)
-                        elif mon.display_hp < mon.hp:
-                            mon.display_hp += max(1, (mon.hp - mon.display_hp) // 4)
-                    draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
-                    pygame.display.flip()
-                    clock.tick(FPS)
+        if player.speed >= opponent.speed:
+            # Player attacks first
+            old_hp = opponent.hp
+            result = player.attack(selected_move, opponent)
+            battle_log.append(result)
+            animate_hp_change(screen, player, opponent, battle_log, move_buttons, old_hp, opponent.hp, is_player=False)
+            pygame.time.wait(500)  # Pauses after player attacks
+
+            if opponent.hp > 0:
+                old_hp = player.hp
+                result = opponent.attack(opponent_move, player)
+                battle_log.append(result)
+                animate_hp_change(screen, player, opponent, battle_log, move_buttons, old_hp, player.hp, is_player=True)
+                pygame.time.wait(500)  # Pauses after opponent attacks
+        else:
+            # Opponent attacks first
+            old_hp = player.hp
+            result = opponent.attack(opponent_move, player)
+            battle_log.append(result)
+            animate_hp_change(screen, player, opponent, battle_log, move_buttons, old_hp, player.hp, is_player=True)
+            pygame.time.wait(500)
+
+            if player.hp > 0:
+                old_hp = opponent.hp
+                result = player.attack(selected_move, opponent)
+                battle_log.append(result)
+                animate_hp_change(screen, player, opponent, battle_log, move_buttons, old_hp, opponent.hp, is_player=False)
+                pygame.time.wait(500) 
+
 
             # Turn logic
             opponent_move = random.choice([i for i, m in enumerate(opponent.moves) if m.pp > 0])
