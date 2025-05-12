@@ -11,7 +11,7 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 FPS = 60
 BG_COLOR = (245, 245, 245)
 WHITE = (255, 255, 255)
-SPRITE_SCALE_FACTOR = 2
+SPRITE_SCALE_FACTOR = 3
 MOVE_PANEL_COLOR = (220, 220, 220)
 TEXT_BOX_COLOR = (240, 240, 240)
 
@@ -57,7 +57,7 @@ def load_move_sounds():
             except Exception as e:
                 print(f"Failed to load sound {fname}: {e}")
     for sound in sounds.values():
-        sound.set_volume(0.1)
+        sound.set_volume(0.3)
 
 load_move_sounds()
 
@@ -74,7 +74,7 @@ if os.path.exists(cry_folder):
             name = os.path.splitext(fname)[0].capitalize()
             try:
                 cry = pygame.mixer.Sound(os.path.join(cry_folder, fname))
-                cry.set_volume(0.2)
+                cry.set_volume(0.18)
                 cries[name] = cry
             except Exception as e:
                 print(f"Failed to load cry {fname}: {e}")
@@ -342,23 +342,23 @@ def main():
                             mon.display_hp -= max(1, (mon.display_hp - mon.hp) // 4)
                         elif mon.display_hp < mon.hp:
                             mon.display_hp += max(1, (mon.hp - mon.display_hp) // 4)
-                    draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
-                    pygame.display.flip()
-                    pygame.time.Clock().tick(FPS)
-                    wait(200)
+                draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
+                pygame.display.flip()
+                pygame.time.Clock().tick(FPS)
+                pygame.time.wait(200)
 
             # Turn logic
             opponent_move = random.choice([i for i, m in enumerate(opponent.moves) if m.pp > 0])
             if player.speed >= opponent.speed:
+                battle_log.append(player.attack(selected_move, opponent))
+                pygame.time.wait(1000)
+                if opponent.hp > 0:
+                    battle_log.append(opponent.attack(opponent_move, player))
+            else:
+                battle_log.append(opponent.attack(opponent_move, player))
+                pygame.time.wait(1000)
+                if player.hp > 0:
                     battle_log.append(player.attack(selected_move, opponent))
-                    wait(1000)
-                    if opponent.hp > 0:
-                        battle_log.append(opponent.attack(opponent_move, player))
-                    else:
-                        battle_log.append(opponent.attack(opponent_move, player))
-                        wait(1000)
-                        if player.hp > 0:
-                            battle_log.append(player.attack(selected_move, opponent))
 
         # This animates fainting
         for _ in range(30):
