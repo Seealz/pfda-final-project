@@ -2,6 +2,8 @@ import pygame
 import random
 import os
 
+pygame.init()
+
 # Constants
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 FPS = 60
@@ -38,18 +40,23 @@ TYPE_COLORS = {
     "Earth": (170, 120, 60)
 }
 
-# Load sounds
-pygame.mixer.init()
-sounds = {
-    "attack": pygame.mixer.Sound("assets/sounds/attack.wav"),
-    "heal": pygame.mixer.Sound("assets/sounds/heal.wav"),
-    "status": pygame.mixer.Sound("assets/sounds/status.wav"),
-    "faint": pygame.mixer.Sound("assets/sounds/faint.wav"),
-    # Custom move-specific sounds
-    "Confuse Ray": pygame.mixer.Sound("assets/sounds/confuse_ray.wav"),
-    "Thunder Wave": pygame.mixer.Sound("assets/sounds/thunder_wave.wav"),
-    "Heal Pulse": pygame.mixer.Sound("assets/sounds/heal_pulse.wav")
-}
+sounds = {}
+def load_move_sounds():
+    move_sound_folder = "assets/sounds"
+    if not os.path.exists(move_sound_folder):
+        print("Warning: sounds folder not found.")
+        return
+
+    for fname in os.listdir(move_sound_folder):
+        if fname.endswith(".wav"):
+            # Convert filename like 'vine_whip.wav' to 'Vine Whip'
+            move_name = os.path.splitext(fname)[0].replace("_", " ").title()
+            try:
+                sounds[move_name] = pygame.mixer.Sound(os.path.join(move_sound_folder, fname))
+            except Exception as e:
+                print(f"Failed to load sound {fname}: {e}")
+
+load_move_sounds()
 
 # Load cries
 cries = {}
@@ -112,7 +119,7 @@ class Monsoons:
             return f"{self.name} is paralyzed and couldn't move!"
         if "Confused" in self.statuses and random.random() < 0.5:
             self.hp = max(0, self.hp - 10)
-            sounds["attack"].play()
+            # No sound for confusion self-hit unless you add one
             return f"{self.name} is confused and hurt itself!"
 
         move.pp -= 1
@@ -125,17 +132,13 @@ class Monsoons:
 
         damage = max(1, int((move.power + self.attack_stat - target.defense) * multiplier * crit_multiplier))
 
-        # Play move-specific or default sound
+        # Play move-specific sound
         if move.name in sounds:
             sounds[move.name].play()
-        elif move.power > 0:
-            sounds["attack"].play()
 
-        # Play cry
         self.play_cry()
 
         log = f"{self.name} used {move.name}!"
-
         if move.power > 0:
             target.hp = max(0, target.hp - damage)
             log += f" It dealt {damage} damage."
@@ -154,7 +157,8 @@ class Monsoons:
             log += f" {target.name} is paralyzed!"
 
         if target.hp <= 0:
-            sounds["faint"].play()
+            if "faint" in sounds:
+                sounds["faint"].play()
             log += f" {target.name} fainted!"
 
         if move.power < 0:
@@ -167,6 +171,7 @@ class Monsoons:
             log += f" {self.name} is no longer affected by any status!"
 
         return log
+
     
 def main():
     pygame.init()
