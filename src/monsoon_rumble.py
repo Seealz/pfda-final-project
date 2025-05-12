@@ -349,6 +349,21 @@ def main():
 
             # Turn logic
             opponent_move = random.choice([i for i, m in enumerate(opponent.moves) if m.pp > 0])
+            def choose_best_move(attacker, target):
+                best_score = -float("inf")
+                best_index = 0
+                for i, move in enumerate(attacker.moves):
+                    if move.pp <= 0:
+                        continue
+                    type_multiplier = 1.0
+                    for t in target.types:
+                        type_multiplier *= TYPE_EFFECTIVENESS.get(move.type, {}).get(t, 1.0)
+                    score = move.power * type_multiplier
+                    if score > best_score:
+                        best_score = score
+                        best_index = i
+                return best_index
+
             if player.speed >= opponent.speed:
                 battle_log.append(player.attack(selected_move, opponent))
                 pygame.time.wait(1000)
