@@ -184,7 +184,6 @@ def main():
         "Confuse Ray": Move("Confuse Ray", "Psychic", 40, 20),
         "Shock": Move("Shock", "Electric", 45, 25),
         "Quake": Move("Quake", "Earth", 50, 20),
-        "Confuse Ray": Move("Confuse Ray", "Psychic", 40, 20),
         "Thunder Wave": Move("Thunder Wave", "Electric", 0, 25),
     }
 
