@@ -305,6 +305,7 @@ def main():
         Monsoons("Cataboo", ["Psychic"], {"hp": 200, "attack": 38, "defense": 32, "speed": 100}, ["Confuse Ray", "Gust", "Heal Pulse"]),
     ]
 
+
     show_main_menu(screen)
 
     running = True
@@ -355,6 +356,7 @@ def main():
 
             # Turn logic
             opponent_move = random.choice([i for i, m in enumerate(opponent.moves) if m.pp > 0])
+
             def choose_best_move(attacker, target):
                 best_score = -float("inf")
                 best_index = 0
@@ -372,14 +374,16 @@ def main():
 
             if player.speed >= opponent.speed:
                 battle_log.append(player.attack(selected_move, opponent))
-                pygame.time.wait(2500)
+                pygame.time.wait(2500)  # Wait for player’s move to complete
                 if opponent.hp > 0:
                     battle_log.append(opponent.attack(opponent_move, player))
+                    pygame.time.wait(2500)  # Wait for opponent’s move to complete
             else:
                 battle_log.append(opponent.attack(opponent_move, player))
-                pygame.time.wait(2500)
+                pygame.time.wait(2500)  # Wait for opponent’s move to complete
                 if player.hp > 0:
                     battle_log.append(player.attack(selected_move, opponent))
+                    pygame.time.wait(2500)  # Wait for player’s move to complete
 
         # This animates fainting
         while player.offset[1] < SCREEN_HEIGHT and opponent.offset[1] < SCREEN_HEIGHT:
