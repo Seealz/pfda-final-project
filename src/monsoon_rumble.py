@@ -340,18 +340,32 @@ def main():
                             mon.display_hp -= max(1, (mon.display_hp - mon.hp) // 4)
                         elif mon.display_hp < mon.hp:
                             mon.display_hp += max(1, (mon.hp - mon.display_hp) // 4)
-                    draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
-                    pygame.display.flip()
-                    clock.tick(FPS)
+                draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
+                pygame.display.flip()
+                pygame.time.Clock().tick(FPS)
+                wait(200) 
 
             # Turn logic
             opponent_move = random.choice([i for i, m in enumerate(opponent.moves) if m.pp > 0])
             if player.speed >= opponent.speed:
                 battle_log.append(player.attack(selected_move, opponent))
+                wait(1000)
                 if opponent.hp > 0:
                     battle_log.append(opponent.attack(opponent_move, player))
             else:
                 battle_log.append(opponent.attack(opponent_move, player))
+                wait(1000)
+                if player.hp > 0:
+                    battle_log.append(player.attack(selected_move, opponent))
+
+                if player.speed >= opponent.speed:
+                    battle_log.append(player.attack(selected_move, opponent))
+                wait(1000)
+                if opponent.hp > 0:
+                    battle_log.append(opponent.attack(opponent_move, player))
+                else:
+                    battle_log.append(opponent.attack(opponent_move, player))
+                wait(1000)
                 if player.hp > 0:
                     battle_log.append(player.attack(selected_move, opponent))
 
