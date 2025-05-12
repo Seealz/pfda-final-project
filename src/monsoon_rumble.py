@@ -252,7 +252,7 @@ def draw_battle_ui(screen, player, opponent, battle_log, move_buttons):
         if player.hp > 0:
             color = TYPE_COLORS.get(move.type, (200, 200, 200))
         else:
-            color = (180, 180, 180)  # Gray out buttons when fainted
+            color = (180, 180, 180)
         pygame.draw.rect(screen, color, rect)
         move_text = f"{move.name} ({move.pp}/{move.max_pp})"
         text = font.render(move_text, True, (0, 0, 0))
@@ -374,16 +374,16 @@ def main():
 
             if player.speed >= opponent.speed:
                 battle_log.append(player.attack(selected_move, opponent))
-                pygame.time.wait(2500)  # Wait for player’s move to complete
+                pygame.time.wait(2500)
                 if opponent.hp > 0:
                     battle_log.append(opponent.attack(opponent_move, player))
-                    pygame.time.wait(2500)  # Wait for opponent’s move to complete
+                    pygame.time.wait(2500)
             else:
                 battle_log.append(opponent.attack(opponent_move, player))
-                pygame.time.wait(2500)  # Wait for opponent’s move to complete
+                pygame.time.wait(2500)
                 if player.hp > 0:
                     battle_log.append(player.attack(selected_move, opponent))
-                    pygame.time.wait(2500)  # Wait for player’s move to complete
+                    pygame.time.wait(2500)
 
         # This animates fainting
         while player.offset[1] < SCREEN_HEIGHT and opponent.offset[1] < SCREEN_HEIGHT:
