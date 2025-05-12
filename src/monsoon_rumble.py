@@ -3,8 +3,45 @@ import random
 import os
 
 pygame.init()
+
+# Constants
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+FPS = 60
+BG_COLOR = (245, 245, 245)
+WHITE = (255, 255, 255)
+SPRITE_SCALE_FACTOR = 3
+MOVE_PANEL_COLOR = (220, 220, 220)
+TEXT_BOX_COLOR = (240, 240, 240)
+
+sounds = {}
+cries = {}
+
 def wait(time_in_ms):
     pygame.time.wait(time_in_ms)
+
+def draw_health_bar(screen, monster, x, y):
+    width = 200
+    height = 20
+    border = 2
+    health_ratio = monster.display_hp / monster.max_hp
+    
+    # Draw border
+    pygame.draw.rect(screen, (0, 0, 0), (x - border, y - border, width + 2*border, height + 2*border))
+    
+    # Draw background
+    pygame.draw.rect(screen, (255, 255, 255), (x, y, width, height))
+    
+    # Draw health
+    health_width = max(0, int(width * health_ratio))
+    health_color = (0, 255, 0) if health_ratio > 0.5 else (255, 255, 0) if health_ratio > 0.2 else (255, 0, 0)
+    pygame.draw.rect(screen, health_color, (x, y, health_width, height))
+    
+    # Draw text
+    font = pygame.font.SysFont(None, 18)
+    health_text = f"{monster.display_hp}/{monster.max_hp}"
+    text_surface = font.render(health_text, True, (0, 0, 0))
+    text_rect = text_surface.get_rect(center=(x + width//2, y + height//2))
+    screen.blit(text_surface, text_rect)
 
 def draw_battle_ui(screen, player, opponent, battle_log, move_buttons):
     screen.fill(BG_COLOR)
@@ -40,15 +77,6 @@ def draw_battle_ui(screen, player, opponent, battle_log, move_buttons):
         text = font.render(move_text, True, (0, 0, 0))
         screen.blit(text, (rect.x + 10, rect.y + 5))
 
-# Constants
-SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
-FPS = 60
-BG_COLOR = (245, 245, 245)
-WHITE = (255, 255, 255)
-SPRITE_SCALE_FACTOR = 3
-MOVE_PANEL_COLOR = (220, 220, 220)
-TEXT_BOX_COLOR = (240, 240, 240)
-
 # Win/Loss
 wins = 0
 losses = 0
@@ -76,7 +104,6 @@ TYPE_COLORS = {
     "Earth": (170, 120, 60)
 }
 
-sounds = {}
 def load_move_sounds():
     move_sound_folder = "assets/sounds"
     if not os.path.exists(move_sound_folder):
@@ -96,13 +123,8 @@ def load_move_sounds():
 load_move_sounds()
 
 # Load cries
-cries = {}
 cry_folder = "assets/cries"
 if os.path.exists(cry_folder):
-    for fname in os.listdir(cry_folder):
-        if fname.endswith(".wav"):
-            name = os.path.splitext(fname)[0].capitalize()
-            cries[name] = pygame.mixer.Sound(os.path.join(cry_folder, fname))
     for fname in os.listdir(cry_folder):
         if fname.endswith(".wav"):
             name = os.path.splitext(fname)[0].capitalize()
@@ -157,81 +179,36 @@ class Monsoons:
             cries[self.name].play()
 
     def attack(self, move_index, target):
-            move = self.moves[move_index]
-            if move.pp <= 0:
-                return f"{self.name} tried to use {move.name} but it's out of PP!", None, None, None
+        move = self.moves[move_index]
+        if move.pp <= 0:
+            return f"{self.name} tried to use {move.name} but it's out of PP!", None, None, None
 
-            if "Paralyzed" in self.statuses and random.random() < 0.25:
-                return f"{self.name} is paralyzed and couldn't move!", None, None, None
-            
-            if "Confused" in self.statuses and random.random() < 0.5:
-                self.hp = max(0, self.hp - 10)
-                return f"{self.name} is confused and hurt itself!", None, None, None
-
-            move.pp -= 1
-            multiplier = 1.0
-            for t in target.types:
-                multiplier *= TYPE_EFFECTIVENESS.get(move.type, {}).get(t, 1.0)
-
-            is_critical = random.random() < 0.1
-            crit_multiplier = 1.5 if is_critical else 1.0
-
-            damage = max(1, int((move.power + self.attack_stat - target.defense) * multiplier * crit_multiplier))
-
-            sound_to_play = move.name if move.name in sounds else None
-            cry_to_play = self.name if self.name in cries else None
-            faint_sound = "faint" if target.hp - damage <= 0 and "faint" in sounds else None
-
-            log = self.use_move(move, target, damage, is_critical, multiplier, sounds)
-
-            return log, sound_to_play, cry_to_play, faint_sound
-
-
+        if "Paralyzed" in self.statuses and random.random() < 0.25:
+            return f"{self.name} is paralyzed and couldn't move!", None, None, None
         
-    pygame.time.wait(1500)
-    draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
-    pygame.display.flip()
+        if "Confused" in self.statuses and random.random() < 0.5:
+            self.hp = max(0, self.hp - 10)
+            return f"{self.name} is confused and hurt itself!", None, None, None
 
-    
-    if opponent.hp > 0:
-            opponent_move = choose_best_move(opponent, player)
-            log, sound_name, cry_name, faint_sound = opponent.attack(opponent_move, player)
-            battle_log.append(log)
-            if cry_name: cries[cry_name].play()
-            if sound_name: sounds[sound_name].play()
-            if faint_sound: sounds[faint_sound].play()
-
-
-            pygame.time.wait(1500) 
-   
-
-    class Monsoon:
-        def __init__(self, name, hp, max_hp):
-            self.name = name
-            self.hp = hp
-            self.max_hp = max_hp
-            self.statuses = []
-
-
-    def choose_best_move(opponent, player):
-    # Implement basic logic to choose a move
-        best_move_index = 0
-        best_damage = 0
-        for i, move in enumerate(opponent.moves):
-            damage = calculate_damage(opponent, move, player)
-            if damage > best_damage:
-                best_damage = damage
-                best_move_index = i
-        return best_move_index
-
-def calculate_damage(attacker, move, defender):
+        move.pp -= 1
         multiplier = 1.0
-        for t in defender.types:
+        for t in target.types:
             multiplier *= TYPE_EFFECTIVENESS.get(move.type, {}).get(t, 1.0)
-        damage = max(1, (move.power + attacker.attack_stat - defender.defense) * multiplier)
-        return damage
 
-def use_move(self, move, target, damage, is_critical, multiplier, sounds):
+        is_critical = random.random() < 0.1
+        crit_multiplier = 1.5 if is_critical else 1.0
+
+        damage = max(1, int((move.power + self.attack_stat - target.defense) * multiplier * crit_multiplier))
+
+        sound_to_play = move.name if move.name in sounds else None
+        cry_to_play = self.name if self.name in cries else None
+        faint_sound = "faint" if target.hp - damage <= 0 and "faint" in sounds else None
+
+        log = self.use_move(move, target, damage, is_critical, multiplier, sounds)
+
+        return log, sound_to_play, cry_to_play, faint_sound
+
+    def use_move(self, move, target, damage, is_critical, multiplier, sounds):
         log = f"{self.name} used {move.name}!"
 
         if move.power > 0:
@@ -266,7 +243,25 @@ def use_move(self, move, target, damage, is_critical, multiplier, sounds):
             log += f" {self.name} is no longer affected by any status!"
 
         return log
-    
+
+def choose_best_move(opponent, player):
+    # Implement basic logic to choose a move
+    best_move_index = 0
+    best_damage = 0
+    for i, move in enumerate(opponent.moves):
+        damage = calculate_damage(opponent, move, player)
+        if damage > best_damage:
+            best_damage = damage
+            best_move_index = i
+    return best_move_index
+
+def calculate_damage(attacker, move, defender):
+    multiplier = 1.0
+    for t in defender.types:
+        multiplier *= TYPE_EFFECTIVENESS.get(move.type, {}).get(t, 1.0)
+    damage = max(1, (move.power + attacker.attack_stat - defender.defense) * multiplier)
+    return damage
+
 def show_main_menu(screen):
     font_title = pygame.font.SysFont("arial", 64, bold=True)
     font_button = pygame.font.SysFont("arial", 36)
@@ -307,11 +302,11 @@ def show_main_menu(screen):
         pygame.display.flip()
         pygame.time.Clock().tick(60)
 
-
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Monsoon Rumble")
+
     clock = pygame.time.Clock()
 
     global MOVES
@@ -346,11 +341,9 @@ def main():
 
     running = True
     while running:
-        # Select random player and opponent Monsoons
         player = random.choice(all_monsoons)
         opponent = random.choice([m for m in all_monsoons if m != player])
-
-        # Setup the battle
+    
         for m in [player, opponent]:
             m.hp = m.max_hp
             m.display_hp = m.max_hp
@@ -383,24 +376,40 @@ def main():
                 pygame.display.flip()
                 clock.tick(FPS)
 
-            # Opponent's turn (if still alive)
-            if opponent.hp > 0:
-                opponent_move = choose_best_move(opponent, player)
-                log, sound_name, cry_name, faint_sound = opponent.attack(opponent_move, player)
-                battle_log.append(log)
-                if cry_name:
-                    cries[cry_name].play()
-                if sound_name:
-                    sounds[sound_name].play()
-                if faint_sound:
-                    sounds[faint_sound].play()
+            # Player's attack
+            log, sound_name, cry_name, faint_sound = player.attack(selected_move, opponent)
+            battle_log.append(log)
+            if cry_name:
+                cries[cry_name].play()
+            if sound_name:
+                sounds[sound_name].play()
+            if faint_sound:
+                sounds[faint_sound].play()
 
-                draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
-                pygame.display.flip()
-                pygame.time.wait(1000)
-            else:
+            draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
+            pygame.display.flip()
+            pygame.time.wait(1000)
+
+            # Check if opponent fainted
+            if opponent.hp <= 0:
                 break
-        # Update HP bars after opponent's attack
+
+            # Opponent's turn
+            opponent_move = choose_best_move(opponent, player)
+            log, sound_name, cry_name, faint_sound = opponent.attack(opponent_move, player)
+            battle_log.append(log)
+            if cry_name:
+                cries[cry_name].play()
+            if sound_name:
+                sounds[sound_name].play()
+            if faint_sound:
+                sounds[faint_sound].play()
+
+            draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
+            pygame.display.flip()
+            pygame.time.wait(1000)
+
+        # Update HP bars after battle
         for mon in (player, opponent):
             if mon.hp <= 0:
                 mon.display_hp = 0
@@ -413,8 +422,6 @@ def main():
         pygame.display.flip()
         pygame.time.wait(2500)
 
-    
-
         # Display win/loss message
         font = pygame.font.SysFont(None, 48)
         result_text = "You Win!" if player.hp > 0 else "You Lose!"
@@ -424,6 +431,7 @@ def main():
         pygame.display.flip()
         pygame.time.wait(3000)
 
+        # Wait for player to press Enter or Escape to proceed
         waiting = True
         while waiting:
             for event in pygame.event.get():
