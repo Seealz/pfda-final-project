@@ -49,12 +49,13 @@ def load_move_sounds():
 
     for fname in os.listdir(move_sound_folder):
         if fname.endswith(".wav"):
-            # Convert filename like 'vine_whip.wav' to 'Vine Whip'
             move_name = os.path.splitext(fname)[0].replace("_", " ").title()
             try:
                 sounds[move_name] = pygame.mixer.Sound(os.path.join(move_sound_folder, fname))
             except Exception as e:
                 print(f"Failed to load sound {fname}: {e}")
+    for sound in sounds.values():
+        sound.set_volume(0.1)
 
 load_move_sounds()
 
@@ -66,6 +67,15 @@ if os.path.exists(cry_folder):
         if fname.endswith(".wav"):
             name = os.path.splitext(fname)[0].capitalize()
             cries[name] = pygame.mixer.Sound(os.path.join(cry_folder, fname))
+    for fname in os.listdir(cry_folder):
+        if fname.endswith(".wav"):
+            name = os.path.splitext(fname)[0].capitalize()
+            try:
+                cry = pygame.mixer.Sound(os.path.join(cry_folder, fname))
+                cry.set_volume(0.2)
+                cries[name] = cry
+            except Exception as e:
+                print(f"Failed to load cry {fname}: {e}")
 
 # Define classes
 class Move:
@@ -184,7 +194,7 @@ def show_main_menu(screen):
     
     waiting = True
     while waiting:
-        screen.fill((30, 30, 30))  # Background color (dark gray)
+        screen.fill((30, 30, 30)) 
 
         # Draw title
         screen.blit(title_text, title_rect)
@@ -192,7 +202,7 @@ def show_main_menu(screen):
         # Draw button (hover effect)
         mouse_pos = pygame.mouse.get_pos()
         if button_rect.collidepoint(mouse_pos):
-            pygame.draw.rect(screen, (70, 130, 180), button_rect)  # hover
+            pygame.draw.rect(screen, (70, 130, 180), button_rect) 
         else:
             pygame.draw.rect(screen, (100, 100, 200), button_rect)
 
@@ -228,7 +238,7 @@ def draw_battle_ui(screen, player, opponent, battle_log, move_buttons):
     pygame.draw.rect(screen, TEXT_BOX_COLOR, (50, 350, 700, 60))
     font = pygame.font.SysFont(None, 24)
     if battle_log:
-        lines = battle_log[-2:]  # Show the last 2 log messages
+        lines = battle_log[-2:]
         for i, line in enumerate(lines):
             text = font.render(line, True, (0, 0, 0))
             screen.blit(text, (60, 355 + i * 20))
@@ -248,8 +258,8 @@ def draw_health_bar(screen, mon, x, y):
     bar_width = 200
     bar_height = 20
     health_ratio = mon.display_hp / mon.max_hp
-    pygame.draw.rect(screen, (0, 0, 0), (x, y, bar_width, bar_height), 2)  # Border
-    pygame.draw.rect(screen, (200, 0, 0), (x, y, int(bar_width * health_ratio), bar_height))  # HP
+    pygame.draw.rect(screen, (0, 0, 0), (x, y, bar_width, bar_height), 2) 
+    pygame.draw.rect(screen, (200, 0, 0), (x, y, int(bar_width * health_ratio), bar_height))
 
     # Draw HP text
     font = pygame.font.SysFont(None, 20)
