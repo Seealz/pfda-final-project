@@ -336,12 +336,14 @@ def main():
                                 selected_move = idx
 
                 # This animates the HP bar
-                for _ in range(5):
-                    for mon in (player, opponent):
-                        if mon.display_hp > mon.hp:
-                            mon.display_hp -= max(1, (mon.display_hp - mon.hp) // 4)
-                        elif mon.display_hp < mon.hp:
-                            mon.display_hp += max(1, (mon.hp - mon.display_hp) // 4)
+                for mon in (player, opponent):
+                    if mon.hp <= 0:
+                        mon.display_hp = 0
+                    elif mon.display_hp > mon.hp:
+                        mon.display_hp -= max(1, (mon.display_hp - mon.hp) // 4)
+                    elif mon.display_hp < mon.hp:
+                        mon.display_hp += max(1, (mon.hp - mon.display_hp) // 4)
+
                 draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
                 pygame.display.flip()
                 pygame.time.Clock().tick(FPS)
@@ -376,11 +378,11 @@ def main():
                     battle_log.append(player.attack(selected_move, opponent))
 
         # This animates fainting
-        for _ in range(30):
-            if player.hp <= 0:
-                player.offset[1] += 2
-            if opponent.hp <= 0:
-                opponent.offset[1] += 2
+        while player.offset[1] < SCREEN_HEIGHT and opponent.offset[1] < SCREEN_HEIGHT:
+            if player.hp <= 0 and player.offset[1] < SCREEN_HEIGHT:
+                player.offset[1] += 5
+            if opponent.hp <= 0 and opponent.offset[1] < SCREEN_HEIGHT:
+                opponent.offset[1] += 5
             draw_battle_ui(screen, player, opponent, battle_log, [])
             pygame.display.flip()
             clock.tick(FPS)
