@@ -5,7 +5,7 @@ import os
 pygame.init()
 
 # Constants
-SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 800
 FPS = 60
 BG_COLOR = (245, 245, 245)
 WHITE = (255, 255, 255)
@@ -305,15 +305,16 @@ def draw_battle_ui(screen, player, opponent, battle_log, move_buttons):
     draw_health_bar(screen, player, 100, 230)
 
     # Draw text box
-    pygame.draw.rect(screen, TEXT_BOX_COLOR, (50, 350, 700, 60))
+    pygame.draw.rect(screen, TEXT_BOX_COLOR, (50, 460, 700, 60)) 
     font = pygame.font.SysFont(None, 24)
     if battle_log:
-        lines = battle_log[-2:]
+        lines = battle_log[-2:]  
         for i, line in enumerate(lines):
             text = font.render(line, True, (0, 0, 0))
-            screen.blit(text, (60, 355 + i * 20))
+            screen.blit(text, (60, 465 + i * 20))  
+
     # Draw move panel
-    pygame.draw.rect(screen, MOVE_PANEL_COLOR, (50, 410, 700, 140))
+    pygame.draw.rect(screen, MOVE_PANEL_COLOR, (50, 520, 700, 140)) 
     font = pygame.font.SysFont(None, 28)
     for rect, idx in move_buttons:
         move = player.moves[idx]
@@ -479,7 +480,7 @@ def main():
             move_buttons = []
             for i, move in enumerate(player.moves):
                 x = 70 + (i % 2) * 350
-                y = 420 + (i // 2) * 40
+                y = 550 + (i // 2) * 60
                 move_buttons.append((pygame.Rect(x, y, 300, 30), i))
             selected_move = None
 
