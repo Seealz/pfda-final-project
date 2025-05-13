@@ -17,6 +17,7 @@ TEXT_BOX_COLOR = (240, 240, 240)
 sounds = {}
 cries = {}
 
+# Helper functions
 def wait(time_in_ms):
     pygame.time.wait(time_in_ms)
 
@@ -171,52 +172,35 @@ class Monsoons:
 
     def attack(self, move_index, target):
         move = self.moves[move_index]
-        
-        # If move has no PP left, return early with an appropriate message
         if move.pp <= 0:
             return f"{self.name} tried to use {move.name} but it's out of PP!", None, None, None
-        
-        # If the Pokémon is paralyzed
         if "Paralyzed" in self.statuses and random.random() < 0.25:
             return f"{self.name} is paralyzed and couldn't move!", None, None, None
-        
-        # If the Pokémon is confused
         if "Confused" in self.statuses and random.random() < 0.5:
-            self.hp = max(0, self.hp - 10) 
+            self.hp = max(0, self.hp - 10)
             return f"{self.name} is confused and hurt itself!", None, None, None
         move.pp -= 1
-        
-        # Initialize damage multiplier for effectiveness against types
         multiplier = 1.0
         for t in target.types:
             multiplier *= TYPE_EFFECTIVENESS.get(move.type, {}).get(t, 1.0)
-        
-        # Check for critical hit
         is_critical = random.random() < 0.1
         crit_multiplier = 1.5 if is_critical else 1.0
-        
-        # Calculate the damage or healing
-        if move.power < 0: 
-            heal_amount = min(abs(move.power), self.max_hp - self.hp)  
-            self.hp += heal_amount
-            dmg_or_heal = heal_amount 
-            log = f"{self.name} healed for {heal_amount} HP using {move.name}."
-        else:  # It's a damaging move
-            damage = calculate_damage(self, move, target)
-            if is_critical:
-                damage = int(damage * crit_multiplier)
-            damage = int(damage * multiplier)
-            dmg_or_heal = damage
-            target.hp = max(0, target.hp - damage)  
-            log = f"{self.name} dealt {damage} damage to {target.name} using {move.name}."
-        
-        # If the target fainted
-        if target.hp == 0:
-            log += f" {target.name} fainted!"
-        
-        # Ensure exactly 4 values are returned
-        return log, None, None, None
-        
+
+        if move.power >= 0:
+            damage = max(1, int((move.power + self.attack_stat - target.defense) * multiplier * crit_multiplier))
+        else:
+            damage = 0
+
+        sound_to_play = move.name if move.name in sounds else None
+
+        cry_to_play = self.name if self.name in cries else None
+
+        faint_sound = "faint" if target.hp - damage <= 0 and "faint" in sounds else None
+
+        log = self.use_move(move, target, damage, is_critical, multiplier, sounds)
+
+        return log, sound_to_play, cry_to_play, faint_sound
+    
     def use_move(self, move, target, damage, is_critical, multiplier, sounds):
         log = f"{self.name} used {move.name}!"
 
@@ -296,12 +280,9 @@ def show_main_menu(screen):
 
 def animate_hp(monster, target_hp):
     steps = 20
-    delta = (target_hp - monster.display_hp) / steps
+    delta = (monster.display_hp - target_hp) / steps
     for _ in range(steps):
-        if delta > 0:
-            monster.display_hp = min(target_hp, monster.display_hp + delta)
-        else:
-            monster.display_hp = max(target_hp, monster.display_hp + delta)
+        monster.display_hp = max(target_hp, monster.display_hp - delta)
         yield
 
 def play_battle_animation(screen, attacker, defender, battle_log, move_buttons):
@@ -528,17 +509,11 @@ def main():
             play_battle_animation(screen, player, opponent, battle_log, move_buttons)
 
             # Animates HP bar
-            if dmg_or_heal is not None:
-                if dmg_or_heal > 0:
-                    for _ in animate_hp(target, target.hp):
-                        draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
-                        pygame.display.flip()
-                        clock.tick(FPS)
-                elif dmg_or_heal < 0:
-                    for _ in animate_hp(player, player.hp):
-                        draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
-                        pygame.display.flip()
-                        clock.tick(FPS)
+            if opponent.hp < opponent.display_hp:
+                for _ in animate_hp(opponent, opponent.hp):
+                    draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
+                    pygame.display.flip()
+                    pygame.time.wait(30)
 
             # Check if opponent fainted
             if opponent.hp <= 0:
