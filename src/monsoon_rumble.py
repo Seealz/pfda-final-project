@@ -323,6 +323,41 @@ MOVES = {
     "Heal Pulse": Move("Heal Pulse", "Psychic", -30, 5),
 }
 
+
+
+def show_restart_button(screen, result_text):
+    font_button = pygame.font.SysFont("arial", 36)
+    restart_button_rect = pygame.Rect(SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 + 100, 300, 60)
+    restart_button_text = font_button.render("Restart", True, (255, 255, 255))
+
+    while True:
+        screen.fill((30, 30, 30))
+        # Display result
+        font_result = pygame.font.SysFont(None, 48)
+        result_surface = font_result.render(result_text, True, (255, 0, 0))
+        result_rect = result_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        screen.blit(result_surface, result_rect)
+
+        # Draw the Restart button
+        mouse_pos = pygame.mouse.get_pos()
+        if restart_button_rect.collidepoint(mouse_pos):
+            pygame.draw.rect(screen, (70, 130, 180), restart_button_rect)
+        else:
+            pygame.draw.rect(screen, (100, 100, 200), restart_button_rect)
+        btn_rect = restart_button_text.get_rect(center=restart_button_rect.center)
+        screen.blit(restart_button_text, btn_rect)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if restart_button_rect.collidepoint(event.pos):
+                    return True 
+
+        pygame.display.flip()
+        pygame.time.Clock().tick(FPS)
+
 def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Monsoon Rumble")
@@ -345,8 +380,7 @@ def main():
     show_main_menu(screen)
 
     # Main game loop
-    running = True
-    while running:
+    while True:
         # Pick random player and opponent
         player = random.choice(all_monsoons)
         opponent = random.choice([m for m in all_monsoons if m != player])
@@ -433,23 +467,17 @@ def main():
             mon.display_hp = mon.hp
         draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
         pygame.display.flip()
-        font = pygame.font.SysFont(None, 48)
+
+        # Determine the result
         result_text = "You Win!" if player.hp > 0 else "You Lose!"
-        result_surface = font.render(result_text, True, (255, 0, 0))
-        rect = result_surface.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
-        screen.blit(result_surface, rect)
         pygame.display.flip()
 
-        waiting = True
-        while waiting:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    return
-                if event.type == pygame.KEYDOWN:
-                    if event.key in (pygame.K_RETURN, pygame.K_ESCAPE):
-                        waiting = False
-            pygame.time.wait(100)
+        # Show restart button after battle
+        if show_restart_button(screen, result_text):
+            continue
+
+        break
+
 
 if __name__ == "__main__":
     main()
