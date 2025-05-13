@@ -28,6 +28,5 @@ Looking ahead, there are several areas for potential improvement:
 - Fix Healing mechanic
 
 ## Milestones
-
 - Built a basic RPG battle system with placeholder sprites.
 - Implemented element types and a functioning CPU.
