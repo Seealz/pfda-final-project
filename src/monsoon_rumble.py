@@ -379,30 +379,32 @@ def show_restart_button(screen, result_text):
 
 def show_monsoon_selection_screen(screen, all_monsoons):
     font = pygame.font.SysFont("arial", 36, bold=True)
-    button_width = 300
-    button_height = 60
+    button_width = 150
+    button_height = 150 
     buttons = []
     button_rects = []
-    button_texts = []
+
     for i, monsoon in enumerate(all_monsoons):
-        button_text = font.render(monsoon.name, True, (255, 255, 255))
-        button_rect = pygame.Rect(150, 100 + i * (button_height + 20), button_width, button_height)
-        buttons.append(button_text)
+        # Scale the sprite for the button
+        sprite = monsoon.front_sprite
+        sprite = pygame.transform.scale(sprite, (button_width, button_height))
+
+        # Create clickable area based on the sprite's position
+        button_rect = pygame.Rect(150 + (i % 3) * (button_width + 50), 100 + (i // 3) * (button_height + 50), button_width, button_height)
+        buttons.append(sprite)
         button_rects.append(button_rect)
-        button_texts.append(button_text)
 
     selected_monsoon = None
     waiting = True
     while waiting:
         screen.fill((30, 30, 30))
 
-        # Draw buttons
+        # Draw each sprite as a button
         for i, button_rect in enumerate(button_rects):
-            pygame.draw.rect(screen, (100, 100, 255), button_rect) 
-            screen.blit(button_texts[i], button_rect.topleft) 
+            screen.blit(buttons[i], button_rect.topleft) 
 
-        # Display Instructions
-        instructions_text = font.render("Click a button to select your Monsoon!", True, (255, 255, 255))
+        # Display instructions
+        instructions_text = font.render("Click a sprite to select your Monsoon!", True, (255, 255, 255))
         instructions_rect = instructions_text.get_rect(center=(SCREEN_WIDTH // 2, 50))
         screen.blit(instructions_text, instructions_rect)
 
@@ -413,7 +415,7 @@ def show_monsoon_selection_screen(screen, all_monsoons):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 for i, button_rect in enumerate(button_rects):
-                    if button_rect.collidepoint(mouse_pos): 
+                    if button_rect.collidepoint(mouse_pos):
                         selected_monsoon = all_monsoons[i]
                         waiting = False 
 
