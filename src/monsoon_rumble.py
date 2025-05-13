@@ -151,20 +151,25 @@ class Monsoons:
         for move_name in move_names:
             original_move = MOVES[move_name]
             self.moves.append(Move(original_move.name, original_move.type, original_move.power, original_move.max_pp))
+
     def draw(self, screen):
         faded_sprite = self.sprite.copy()
         if hasattr(self, 'alpha'):
             faded_sprite.set_alpha(self.alpha)
         screen.blit(faded_sprite, (0, 0))
+
     def apply_damage(self, damage):
         self.hp = max(0, self.hp - damage)
         if self.hp == 0:
             self.faint()
+
     def faint(self):
         pass
+
     def play_cry(self):
         if self.name in cries:
             cries[self.name].play()
+
     def attack(self, move_index, target):
         move = self.moves[move_index]
         if move.pp <= 0:
@@ -180,40 +185,52 @@ class Monsoons:
             multiplier *= TYPE_EFFECTIVENESS.get(move.type, {}).get(t, 1.0)
         is_critical = random.random() < 0.1
         crit_multiplier = 1.5 if is_critical else 1.0
-        damage = max(1, int((move.power + self.attack_stat - target.defense) * multiplier * crit_multiplier))
+
+        if move.power >= 0:
+            damage = max(1, int((move.power + self.attack_stat - target.defense) * multiplier * crit_multiplier))
+        else:
+            damage = 0
+
         sound_to_play = move.name if move.name in sounds else None
+
         cry_to_play = self.name if self.name in cries else None
+
         faint_sound = "faint" if target.hp - damage <= 0 and "faint" in sounds else None
+
         log = self.use_move(move, target, damage, is_critical, multiplier, sounds)
+
         return log, sound_to_play, cry_to_play, faint_sound
+    
     def use_move(self, move, target, damage, is_critical, multiplier, sounds):
         log = f"{self.name} used {move.name}!"
+
         if move.power > 0:
             target.hp = max(0, target.hp - damage)
             log += f" It dealt {damage} damage."
-            if is_critical:
-                log += " A critical hit!"
-            if multiplier > 1:
-                log += " It's super effective!"
-            elif multiplier < 1:
-                log += " It's not very effective."
+        elif move.power < 0:
+            heal_amount = abs(move.power)
+            self.hp = min(self.max_hp, self.hp + heal_amount)
+            log += f" {self.name} recovered for {heal_amount} HP."
+
+        if is_critical:
+            log += " A critical hit!"
+        if multiplier > 1:
+            log += " It's super effective!"
+        elif multiplier < 1:
+            log += " It's not very effective."
+
         if move.name == "Confuse Ray" and "Confused" not in target.statuses:
             target.statuses.append("Confused")
             log += f" {target.name} became confused!"
         elif move.name == "Thunder Wave" and "Paralyzed" not in target.statuses:
             target.statuses.append("Paralyzed")
             log += f" {target.name} is paralyzed!"
+
         if target.hp <= 0:
             if "faint" in sounds:
                 sounds["faint"].play()
             log += f" {target.name} fainted!"
-        if move.power < 0:
-            heal = min(-move.power, self.max_hp - self.hp)
-            self.hp += heal
-            log += f" {self.name} recovered {heal} HP."
-        if move.name == "Heal Pulse":
-            self.statuses.clear()
-            log += f" {self.name} is no longer affected by any status!"
+
         return log
 
 def choose_best_move(opponent, player):
@@ -358,7 +375,11 @@ def show_restart_button(screen, result_text):
         pygame.display.flip()
         pygame.time.Clock().tick(FPS)
 
+
 def main():
+
+    global wins, losses
+
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Monsoon Rumble")
     clock = pygame.time.Clock()
@@ -381,7 +402,7 @@ def main():
 
     # Main game loop
     while True:
-        # Pick random player and opponent
+        # Picks random player and opponent
         player = random.choice(all_monsoons)
         opponent = random.choice([m for m in all_monsoons if m != player])
 
@@ -408,7 +429,7 @@ def main():
                 move_buttons.append((pygame.Rect(x, y, 300, 30), i))
             selected_move = None
 
-            # Wait for player move
+            # Waits for player move
             while selected_move is None:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -429,10 +450,10 @@ def main():
             # Play sound
             if sound_name:
                 sounds[sound_name].play()
-            # Animate attack
+            # Animates attack
             play_battle_animation(screen, player, opponent, battle_log, move_buttons)
 
-            # Animate HP bar
+            # Animates HP bar
             if opponent.hp < opponent.display_hp:
                 for _ in animate_hp(opponent, opponent.hp):
                     draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
@@ -451,14 +472,13 @@ def main():
                 sounds[sound_name].play()
             play_battle_animation(screen, opponent, player, battle_log, [])
 
-            # Animate HP bar
+            # Animates HP bar
             if player.hp < player.display_hp:
                 for _ in animate_hp(player, player.hp):
                     draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
                     pygame.display.flip()
                     pygame.time.wait(30)
 
-            # Check if player fainted
             if player.hp <= 0:
                 break
 
@@ -468,15 +488,22 @@ def main():
         draw_battle_ui(screen, player, opponent, battle_log, move_buttons)
         pygame.display.flip()
 
-        # Determine the result
-        result_text = "You Win!" if player.hp > 0 else "You Lose!"
-        pygame.display.flip()
+        # Determines the result
+        if player.hp > 0:
+            result_text = "You Win!"
+            wins += 1
+        else:
+            result_text = "You Lose!"
+            losses += 1
 
-        # Show restart button after battle
+        # Shows result and restart option
         if show_restart_button(screen, result_text):
             continue
+        else:
+            break
 
-        break
+    pygame.quit()
+
 
 
 if __name__ == "__main__":
