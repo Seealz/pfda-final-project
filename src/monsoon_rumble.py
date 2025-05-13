@@ -436,14 +436,14 @@ def main():
 
     all_monsoons = [
 
-        Monsoons("Voltail", ["Electric"], {"hp": 80, "attack": 130, "defense": 40, "speed": 200}, ["Shock", "Tackle", "Recover"]),
+        Monsoons("Voltail", ["Electric"], {"hp": 80, "attack": 130, "defense": 60, "speed": 200}, ["Shock", "Tackle", "Recover"]),
         Monsoons("Burnrat", ["Fire"], {"hp": 150, "attack": 75, "defense": 75, "speed": 100}, ["Ember", "Tackle", "Recover"]),
         Monsoons("Thyladon", ["Plant"], {"hp": 120, "attack": 120, "defense": 80, "speed": 95}, ["Vine Whip", "Tackle", "Recover"]),
-        Monsoons("Pseye", ["Psychic"], {"hp": 90, "attack": 115, "defense": 40, "speed": 150}, ["Confuse Ray", "Tackle", "Heal Pulse"]),
+        Monsoons("Pseye", ["Psychic"], {"hp": 90, "attack": 115, "defense": 70, "speed": 150}, ["Confuse Ray", "Tackle", "Heal Pulse"]),
         Monsoons("Flydo", ["Wind"], {"hp": 130, "attack": 60, "defense": 95, "speed": 155}, ["Gust", "Tackle", "Recover"]),
-        Monsoons("Drillizard", ["Earth"], {"hp": 150, "attack": 130, "defense": 100, "speed": 45}, ["Quake", "Tackle", "Heal Pulse"]),
+        Monsoons("Drillizard", ["Earth"], {"hp": 150, "attack": 130, "defense": 650, "speed": 45}, ["Quake", "Tackle", "Heal Pulse"]),
         Monsoons("Clawdon", ["Normal"], {"hp": 170, "attack": 90, "defense": 80, "speed": 120}, ["Tackle", "Ember", "Recover"]),
-        Monsoons("Baitinphish", ["Water"], {"hp": 350, "attack": 50, "defense": 150, "speed": 30}, ["Water Gun", "Tackle", "Recover"]),
+        Monsoons("Baitinphish", ["Water"], {"hp": 350, "attack": 50, "defense": 100, "speed": 30}, ["Water Gun", "Tackle", "Recover"]),
         Monsoons("Cataboo", ["Psychic"], {"hp": 120, "attack": 140, "defense": 50, "speed": 110}, ["Confuse Ray", "Gust", "Heal Pulse"]),
     ]
 
