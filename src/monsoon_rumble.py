@@ -376,6 +376,53 @@ def show_restart_button(screen, result_text):
         pygame.time.Clock().tick(FPS)
 
 
+
+def show_monsoon_selection_screen(screen, all_monsoons):
+    font = pygame.font.SysFont("arial", 36, bold=True)
+    button_width = 300
+    button_height = 60
+    buttons = []
+    button_rects = []
+    button_texts = []
+    for i, monsoon in enumerate(all_monsoons):
+        button_text = font.render(monsoon.name, True, (255, 255, 255))
+        button_rect = pygame.Rect(150, 100 + i * (button_height + 20), button_width, button_height)
+        buttons.append(button_text)
+        button_rects.append(button_rect)
+        button_texts.append(button_text)
+
+    selected_monsoon = None
+    waiting = True
+    while waiting:
+        screen.fill((30, 30, 30))
+
+        # Draw buttons
+        for i, button_rect in enumerate(button_rects):
+            pygame.draw.rect(screen, (100, 100, 255), button_rect) 
+            screen.blit(button_texts[i], button_rect.topleft) 
+
+        # Display Instructions
+        instructions_text = font.render("Click a button to select your Monsoon!", True, (255, 255, 255))
+        instructions_rect = instructions_text.get_rect(center=(SCREEN_WIDTH // 2, 50))
+        screen.blit(instructions_text, instructions_rect)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                for i, button_rect in enumerate(button_rects):
+                    if button_rect.collidepoint(mouse_pos): 
+                        selected_monsoon = all_monsoons[i]
+                        waiting = False 
+
+        pygame.display.flip()
+        pygame.time.Clock().tick(FPS)
+
+    return selected_monsoon 
+
+
 def main():
 
     global wins, losses
@@ -386,27 +433,32 @@ def main():
 
     all_monsoons = [
 
-        Monsoons("Voltail", ["Electric"], {"hp": 160, "attack": 30, "defense": 35, "speed": 200}, ["Shock", "Tackle", "Recover"]),
-        Monsoons("Burnrat", ["Fire"], {"hp": 158, "attack": 25, "defense": 25, "speed": 120}, ["Ember", "Tackle", "Recover"]),
-        Monsoons("Thyladon", ["Plant"], {"hp": 110, "attack": 45, "defense": 40, "speed": 156}, ["Vine Whip", "Tackle", "Recover"]),
-        Monsoons("Pseye", ["Psychic"], {"hp": 144, "attack": 45, "defense": 30, "speed": 94}, ["Confuse Ray", "Tackle", "Heal Pulse"]),
-        Monsoons("Flydo", ["Wind"], {"hp": 166, "attack": 30, "defense": 25, "speed": 177}, ["Gust", "Tackle", "Recover"]),
-        Monsoons("Drillizard", ["Earth"], {"hp": 123, "attack": 50, "defense": 65, "speed": 133}, ["Quake", "Tackle", "Heal Pulse"]),
-        Monsoons("Clawdon", ["Normal"], {"hp": 235, "attack": 45, "defense": 40, "speed": 150}, ["Tackle", "Ember", "Recover"]),
-        Monsoons("Baitinphish", ["Water"], {"hp": 365, "attack": 22, "defense": 55, "speed": 50}, ["Water Gun", "Tackle", "Recover"]),
-        Monsoons("Cataboo", ["Psychic"], {"hp": 200, "attack": 38, "defense": 32, "speed": 100}, ["Confuse Ray", "Gust", "Heal Pulse"]),
+        Monsoons("Voltail", ["Electric"], {"hp": 80, "attack": 130, "defense": 40, "speed": 200}, ["Shock", "Tackle", "Recover"]),
+        Monsoons("Burnrat", ["Fire"], {"hp": 150, "attack": 75, "defense": 75, "speed": 100}, ["Ember", "Tackle", "Recover"]),
+        Monsoons("Thyladon", ["Plant"], {"hp": 120, "attack": 120, "defense": 80, "speed": 95}, ["Vine Whip", "Tackle", "Recover"]),
+        Monsoons("Pseye", ["Psychic"], {"hp": 90, "attack": 115, "defense": 40, "speed": 150}, ["Confuse Ray", "Tackle", "Heal Pulse"]),
+        Monsoons("Flydo", ["Wind"], {"hp": 130, "attack": 60, "defense": 95, "speed": 155}, ["Gust", "Tackle", "Recover"]),
+        Monsoons("Drillizard", ["Earth"], {"hp": 150, "attack": 130, "defense": 100, "speed": 45}, ["Quake", "Tackle", "Heal Pulse"]),
+        Monsoons("Clawdon", ["Normal"], {"hp": 170, "attack": 90, "defense": 80, "speed": 120}, ["Tackle", "Ember", "Recover"]),
+        Monsoons("Baitinphish", ["Water"], {"hp": 350, "attack": 50, "defense": 150, "speed": 30}, ["Water Gun", "Tackle", "Recover"]),
+        Monsoons("Cataboo", ["Psychic"], {"hp": 120, "attack": 140, "defense": 50, "speed": 110}, ["Confuse Ray", "Gust", "Heal Pulse"]),
     ]
 
+    selected_monsoon = show_monsoon_selection_screen(screen, all_monsoons)
+    if selected_monsoon:
+        print(f"Selected Monsoon: {selected_monsoon.name}")
+    else:
+        print("No Monsoon selected.")
+        return
+   
     # Show main menu
     show_main_menu(screen)
 
     # Main game loop
     while True:
-        # Picks random player and opponent
-        player = random.choice(all_monsoons)
+        player = selected_monsoon 
         opponent = random.choice([m for m in all_monsoons if m != player])
 
-        # Reset health and PP
         for mon in [player, opponent]:
             mon.hp = mon.max_hp
             mon.display_hp = mon.max_hp
